@@ -503,9 +503,9 @@ file descriptors can be used for the purposes described in
   is used to return the PID file descriptor, **CLONE_PIDFD** cannot be
   used with **CLONE_PARENT_SETTID** when calling **clone**().
 
-It is currently not possible to use this flag together with
-**CLONE_THREAD.** This means that the process identified by the PID file
-descriptor will always be a thread group leader.
+If **CLONE_PIDFD** is specified together with **CLONE_THREAD** then the
+*pidfd* will refer to a specific thread as opposed to a thread-group
+leader if **CLONE_THREAD** is not specified.
 
 If the obsolete **CLONE_DETACHED** flag is specified alongside
 **CLONE_PIDFD** when calling **clone**(), an error is returned. An error
@@ -773,10 +773,6 @@ example, on aarch64, *stack* must be a multiple of 16.
 
 **EINVAL** (**clone**() only)  
 **CLONE_PIDFD** was specified together with **CLONE_DETACHED** in the
-*flags* mask.
-
-**EINVAL**  
-**CLONE_PIDFD** was specified together with **CLONE_THREAD** in the
 *flags* mask.
 
 **EINVAL **(**clone**() only)  
