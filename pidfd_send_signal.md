@@ -46,8 +46,35 @@ values that are implicitly supplied when a signal is sent using
 The calling process must either be in the same PID namespace as the
 process referred to by *pidfd*, or be in an ancestor of that namespace.
 
-The *flags* argument is reserved for future use; currently, this
-argument must be specified as 0.
+## The *flags* mask
+
+The *flags* argument allows to modify the scope of the signal. By
+default the scope of the signal will be infered from the *pidfd*
+argument.
+
+For example, if *pidfd* refers to a specific thread, i.e., the *pidfd*
+was created through **pidfd_open**(2) passing the **PIDFD_THREAD** flag
+or through **clone3**(2) using the **CLONE_PIDFD** flag together with
+the **CLONE_THREAD** flag then passing *pidfd* to
+**pidfd_send_signal**(2) and leaving the *flags* argument as *0* will
+cause the signal to be sent to the specific thread referenced by the
+*pidfd*.
+
+The *flags* mask of **pidfd_send_signal**(2) system call allows the
+caller to override the default signal scope indicated by *pidfd*.
+
+**PIDFD_SIGNAL_THREAD** (since Linux v6.9)  
+Ensure that the signal is sent to the specific thread referenced by *pidfd*.
+
+**PIDFD_SIGNAL_THREAD_GROUP** (since Linux v6.9)  
+If *pidfd* refers to a thread-group leader ensure that the signal is
+sent to the thread-group even if *pidfd* was created to refer to a
+specific thread.
+
+**PIDFD_SIGNAL_PROCESS_GROUP** (since Linux v6.9)  
+If *pidfd* refers to a process-group leader ensure that the signal is
+sent to the process-group even if *pidfd* was created to refer to a
+specific thread or to a thread-group leader.
 
 # RETURN VALUE
 
