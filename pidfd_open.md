@@ -129,6 +129,17 @@ with the **CLONE_PID** flag) can be used for the following purposes:
   from the file descriptor (**read**(2) on the file descriptor fails
   with the error **EINVAL**).
 
+- If *pidfd* refers to a thread-group leader then **poll**(2),
+  **select**(2), and **epoll**(2) will notify when the last thread in
+  the thread-group has exited. In other wrods, if the thread-group
+  leader exits before any other threads in the thread-group leader then
+  notification will be delayed until all other threads have exited.
+
+- If *pidfd* refers to a specific thread via **pidfd_open**(2) using the
+  **PIDFD_THREAD** flag or through **clone3**() using the
+  **CLONE_PIDFD** together with **CLONE_THREAD** then **poll**(2),
+  **select**(2), and **epoll**(2) will notify when the thread exits.
+
 - If the PID file descriptor refers to a child of the calling process,
   then it can be waited on using **waitid**(2).
 
