@@ -391,9 +391,7 @@ mount:
 - The underlying filesystem must support ID-mapped mounts. Currently,
   the following filesystems support ID-mapped mounts:
 
-  - 
-
-  **xfs**(5) (since Linux 5.12)
+  - **xfs**(5) (since Linux 5.12)
 
   - **ext4**(5) (since Linux 5.12)
 
@@ -409,6 +407,12 @@ mount:
 
   - **overlayfs** (ID-mapped lower and upper layers supported since
     Linux 5.19)
+
+  - **squashfs** (since Linux 6.2)
+
+  - **tmpfs** (since Linux 6.6)
+
+  - **cephfs** (since Linux 6.7)
 
 - The mount must not already be ID-mapped. This also implies that the ID
   mapping of a mount cannot be altered.
