@@ -425,6 +425,8 @@ mount:
   things another way: the mount must not have been attached to the
   filesystem hierarchy with a system call such as **move_mount**(2).)
 
+- The user namespace specified in *userns_fd* must have an idmapping written.
+
 ID mappings can be created for user IDs, group IDs, and project IDs. An
 ID mapping is essentially a mapping of a range of user or group IDs into
 another or the same range of user or group IDs. ID mappings are written
