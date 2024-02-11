@@ -17,10 +17,19 @@ the use of **syscall**(2).
 
 # DESCRIPTION
 
-The **pidfd_open**() system call creates a file descriptor that refers
-to the process whose PID is specified in *pid*. The file descriptor is
-returned as the function result; the close-on-exec flag is set on the
-file descriptor.
+The **pidfd_open**() system call creates a file descriptor. By default
+the returned pidfd file descriptor will refer to a process
+("thread-group leader"). Specifying **PIDFD_THREAD** in the *flags*
+argument will instead make it refer to a specific thread.
+
+Whether a *pidfd* refers to a thread-group leader or specific thread
+will affect the behavior of **poll**(2) and **epoll**(2) as well as
+**pidfd_send_signal**(2).
+
+The file descriptor is returned as the function result; the
+close-on-exec flag is set on the file descriptor.
+
+## The *flags* mask
 
 The *flags* argument either has the value 0, or contains the following
 flag:
@@ -30,6 +39,9 @@ Return a nonblocking file descriptor. If the process referred to by the
 file descriptor has not yet terminated, then an attempt to wait on the
 file descriptor using **waitid**(2) will immediately return the error
 **EAGAIN** rather than blocking.
+
+**PIDFD_THREAD** (since Linux v6.9)  
+Create a pidfd that refers to a specific thread.
 
 # RETURN VALUE
 
