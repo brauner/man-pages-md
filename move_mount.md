@@ -99,6 +99,40 @@ Add an existing private mount into a propagation group. This makes it
 possible to first create a mount tree consisting only of private mounts
 and configuring the desired propagation layout afterwards.
 
+**MOVE_MOUNT_BENEATH** (since Linux 6.5)  
+Move a mount beneath the current top mount in a mount stack. After
+moving a mount beneath the top mount it is possible to unmount the top
+mount and reveal the mount that was moved beneath it earlier. This
+allows to seamlessly upgrade mounts.
+
+The following restrictions apply:
+
+* Mounts cannot be moved beneath the rootfs. This restriction
+  encompasses the rootfs but also **chroot**(2), and **pivot_root**(2).
+  To mount a mount beneath the rootfs or a chroot **pivot_root**(2) must
+  be used.
+* The path to mount beneath must be a mount. However, the mount cannot
+  be a detached mount gotten via **OPEN_TREE_CLONE** from
+  **open_tree**(2).
+* The top mount and its current parent mount must be in the caller's
+  mount namespace.
+* The caller must be unable to unmount the current to mount to prove
+  that they could reveal the underlying mount.
+* The propagation tree is calculated based on the parent mount of the
+  current top mount.
+* It is not possible to move a mount beneath a top mount if the parent
+  mount of the current top mount propagates to the top mount itself.
+  This would otherwise cause the mount to move beneath the top mount to
+  propagate on top of the current top mount defeating the purpose of
+  mounting beneath the top mount.
+* It is not possible to move a mount beneath the top mount if the parent
+  of the top mount propagates to the mount that is supposed to mounted
+  on top of it. This would otherwise cause a similar overmounting
+  problem as mentioned earlier.
+* It is not possible to move a mount beneath if it has been overmounted
+  in the meantime as this would create shadow mounts, i.e., two mounts
+  mounted on the same parent mount at the same mountpoint.
+
 # EXAMPLES
 
 The **move_mount**() function can be used like the following:
@@ -150,6 +184,39 @@ location outside the process's accessible address space.
 
 **EINVAL**  
 Reserved flag specified in *flags*.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted beneath the rootfs, a **chroot**(),
+or **pivot_root**(2).
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted and the path to mount beneath is
+not a mount.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted and path to mount beneath is a
+detached mount gotten via **OPEN_TREE_CLONE** from **open_tree**(2).
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted and the current top mount or its
+current parent mount are not in the caller's mount namespace.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted but the caller doesn't have the
+ability unmount the current top mount.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
+mount propagates to the top mount.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
+mount propagates to the mount that is supposed to be mounted beneath the
+top mount.
+
+**EINVAL**  
+**MOVE_MOUNT_BENEATH** was attempted but because of a concurrent mounter
+the mount to move beneath has been overmounted.
 
 **ELOOP**  
 Too many symbolic links encountered while traversing the pathname.
