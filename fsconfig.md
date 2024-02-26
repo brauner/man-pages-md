@@ -5,19 +5,10 @@ fsconfig - Filesystem parameterisation
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
 
-
-    #include <sys/mount.h>
-
     int fsconfig(int *fd, unsigned int cmd, const char *key,
-
-
      const void __user *value, int aux);
 
 *Note*: There is no glibc wrapper for this system call.
