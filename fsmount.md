@@ -5,18 +5,9 @@ fsopen, fsmount - Filesystem parameterisation and mount creation
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
-
-
     #include <fcntl.h> /* Definition of AT_* constants */
-
-
-    #include <sys/mount.h> 
 
     int fsopen(const char *fsname, unsigned int flags);
 
