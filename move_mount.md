@@ -94,6 +94,11 @@ for **move_mount**() is to not follow symlinks.
 **MOVE_MOUNT_T_SYMLINKS**  
 As above, but operating on *to_pathname* and *to_dirfd*.
 
+**MOVE_MOUNT_SET_GROUP** (since Linux 5.15)  
+Add an existing private mount into a propagation group. This makes it
+possible to first create a mount tree consisting only of private mounts
+and configuring the desired propagation layout afterwards.
+
 # EXAMPLES
 
 The **move_mount**() function can be used like the following:
