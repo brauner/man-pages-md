@@ -5,14 +5,8 @@ fspick - Select filesystem for reconfiguration
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
-
-
     #include <fcntl.h> /* Definition of AT_* constants */
 
     int fspick(int dirfd, const char *pathname, unsigned int flags);

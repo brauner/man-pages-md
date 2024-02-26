@@ -5,14 +5,8 @@ move_mount - Move mount objects around the filesystem topology
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
-
-
     #include <fcntl.h> /* Definition of AT_* constants */
 
     int move_mount(int from_dirfd, const char *from_pathname,
