@@ -5,19 +5,10 @@ fsconfig - Filesystem parameterisation
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
 
-
-    #include <sys/mount.h>
-
     int fsconfig(int *fd, unsigned int cmd, const char *key,
-
-
      const void __user *value, int aux);
 
 *Note*: There is no glibc wrapper for this system call.
@@ -81,6 +72,14 @@ it can share an existing one, it may do that instead if the filesystem
 type and parameters permit that. This is intended for use with
 **fsopen**(2).
 
+**FSCONFIG_CMD_CREATE_EXCL** (since Linux 6.6)  
+This command is imilar to **FSCONFIG_CMD_CREATE** but will return
+**EBUSY** if a matching superblock already exists. Userspace that needs
+to be sure that it did create a new superblock with the requested mount
+options can request superblock creation using this command. If the
+command succeeds they can be sure that they did create a new superblock
+with the requested mount options.
+
 **FSCONFIG_CMD_RECONFIGURE**  
 This command causes the filesystem to apply the parameters set in the
 context to an already existing filesystem representation in memory and
@@ -141,6 +140,10 @@ command.
 **EBUSY**  
 The filesystem representation cannot be reconfigured read-only because
 it still holds files open for writing.
+
+**EBUSY**  
+A new superblock was requested with **FSCONFIG_CMD_CREATE_EXCL** but a
+matching superblock already existed.
 
 **EFAULT**  
 One of the pointer arguments points outside the user address space.
