@@ -5,14 +5,8 @@ open_tree - Pick or clone mount object and attach to fd
 # SYNOPSIS
 
     #include <sys/types.h>
-
-
     #include <sys/mount.h>
-
-
     #include <unistd.h>
-
-
     #include <fcntl.h> /* Definition of AT_* constants */
 
     int open_tree(int dirfd, const char *pathname, unsigned int flags);
