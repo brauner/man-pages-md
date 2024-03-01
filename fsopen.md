@@ -1,6 +1,6 @@
 # NAME
 
-fsopen, fsmount - Filesystem parameterisation and mount creation
+fsopen - Filesystem context creation
 
 # SYNOPSIS
 
@@ -10,8 +10,6 @@ fsopen, fsmount - Filesystem parameterisation and mount creation
     #include <fcntl.h> /* Definition of AT_* constants */
 
     int fsopen(const char *fsname, unsigned int flags);
-
-    int fsmount(int fd, unsigned int flags, unsigned int mount_attrs);
 
 *Note*: There are no glibc wrappers for these system calls.
 
@@ -45,24 +43,6 @@ Once the creation command has been successfully run on a context, the
 context is switched into need-mount mode which prevents further
 configuration. At this point, **fsmount**() should be called to create a
 mount object.
-
-**fsmount**() takes the file descriptor returned by **fsopen**() and
-creates a mount object for the filesystem root specified there. The
-attributes of the mount object are set from the *mount_attrs* parameter.
-The attributes specify the propagation and mount restrictions to be
-applied to accesses through this mount.
-
-The mount object is then attached to a new file descriptor that looks
-like one created by **open**(2) with **O_PATH** or **open_tree**(2).
-This can be passed to **move_mount**(2) to attach the mount object to a
-mountpoint, thereby completing the process.
-
-The file descriptor returned by fsmount() is marked close-on-exec if
-FSMOUNT_CLOEXEC is specified in *flags*.
-
-After fsmount() has completed, the context created by fsopen() is reset
-and moved to reconfiguration state, allowing the new superblock to be
-reconfigured. See **fspick**(2) for details.
 
 ## Message Retrieval Interface
 
@@ -127,18 +107,11 @@ The error values given below result from filesystem type independent
 errors. Each filesystem type may have its own special errors and its own
 special behavior. See the Linux kernel source code for details.
 
-**EBUSY**  
-The context referred to by *fd* is not in the right state to be used by
-**fsmount**().
-
 **EFAULT**  
 One of the pointer arguments points outside the user address space.
 
 **EINVAL**  
 *flags* had an invalid flag set.
-
-**EINVAL**  
-*mount_attrs,* includes invalid **MOUNT_ATTR\_\*** flags.
 
 **EMFILE**  
 The system has too many open files to create more.
@@ -162,16 +135,16 @@ intended to be portable.
 
 # VERSIONS
 
-**fsopen**(), and **fsmount**() were added to Linux in kernel 5.1.
+**fsopen**() was added to Linux in kernel 5.1.
 
 # NOTES
 
-Glibc does not (yet) provide a wrapper for the **fsopen**() or
-**fsmount**() system calls; call them using **syscall**(2).
+Glibc does not (yet) provide a wrapper for the **fsopen**() system
+call; call it using **syscall**(2).
 
 # SEE ALSO
 
-**mountpoint**(1), **fsconfig**(2), **fspick**(2), **move_mount**(2),
-**open_tree**(2), **umount**(2), **mount_namespaces**(7),
-**path_resolution**(7), **findmnt**(8), **lsblk**(8), **mount**(8),
-**umount**(8)
+**mountpoint**(1), **fsmount**(2), **fsconfig**(2), **fspick**(2),
+**move_mount**(2), **open_tree**(2), **umount**(2),
+**mount_namespaces**(7), **path_resolution**(7), **findmnt**(8),
+**lsblk**(8), **mount**(8), **umount**(8)
