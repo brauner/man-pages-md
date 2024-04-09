@@ -410,7 +410,7 @@ mount:
 
   - **squashfs** (since Linux 6.2)
 
-  - **tmpfs** (since Linux 6.6)
+  - **tmpfs** (since Linux 6.3)
 
   - **cephfs** (since Linux 6.7)
 
