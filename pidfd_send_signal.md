@@ -63,15 +63,15 @@ cause the signal to be sent to the specific thread referenced by the
 The *flags* mask of **pidfd_send_signal**(2) system call allows the
 caller to override the default signal scope indicated by *pidfd*.
 
-**PIDFD_SIGNAL_THREAD** (since Linux v6.9)  
+**PIDFD_SIGNAL_THREAD** (since Linux v6.9)
 Ensure that the signal is sent to the specific thread referenced by *pidfd*.
 
-**PIDFD_SIGNAL_THREAD_GROUP** (since Linux v6.9)  
+**PIDFD_SIGNAL_THREAD_GROUP** (since Linux v6.9)
 If *pidfd* refers to a thread-group leader ensure that the signal is
 sent to the thread-group even if *pidfd* was created to refer to a
 specific thread.
 
-**PIDFD_SIGNAL_PROCESS_GROUP** (since Linux v6.9)  
+**PIDFD_SIGNAL_PROCESS_GROUP** (since Linux v6.9)
 If *pidfd* refers to a process-group leader ensure that the signal is
 sent to the process-group even if *pidfd* was created to refer to a
 specific thread or to a thread-group leader.
@@ -83,28 +83,28 @@ and *errno* is set to indicate the error.
 
 # ERRORS
 
-**EBADF**  
+**EBADF**
 *pidfd* is not a valid PID file descriptor.
 
-**EINVAL**  
+**EINVAL**
 *sig* is not a valid signal.
 
-**EINVAL**  
+**EINVAL**
 The calling process is not in a PID namespace from which it can send a
 signal to the target process.
 
-**EINVAL**  
+**EINVAL**
 *flags* is not 0.
 
-**EPERM**  
+**EPERM**
 The calling process does not have permission to send the signal to the
 target process.
 
-**EPERM**  
+**EPERM**
 *pidfd* doesn't refer to the calling process, and *info.si_code* is
 invalid (see **rt_sigqueueinfo**(2)).
 
-**ESRCH**  
+**ESRCH**
 The target process does not exist (i.e., it has terminated and been
 waited on).
 
