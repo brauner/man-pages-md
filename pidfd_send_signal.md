@@ -94,7 +94,7 @@ The calling process is not in a PID namespace from which it can send a
 signal to the target process.
 
 **EINVAL**
-*flags* is not 0.
+*flags* value is not valid.
 
 **EPERM**
 The calling process does not have permission to send the signal to the
