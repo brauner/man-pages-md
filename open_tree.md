@@ -118,6 +118,10 @@ returned, and *errno* is set appropriately.
 Search permission is denied for one of the directories in the path
 prefix of *pathname*. (See also **path_resolution**(7).)
 
+**EPERM**
+The **OPEN_TREE_CLONE** flag was specified and the caller does not
+have the required privileges.
+
 **EBADF**  
 *dirfd* is not a valid open file descriptor.
 
