@@ -130,7 +130,8 @@ have the required privileges.
 process's accessible address space.
 
 **EINVAL**  
-Reserved flag specified in *flags*.
+Reserved flag specified in *flags*, or **AT_RECURSIVE** specified
+without **OPEN_TREE_CLONE**.
 
 **ELOOP**  
 Too many symbolic links encountered while traversing the pathname.
