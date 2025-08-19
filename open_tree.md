@@ -152,7 +152,7 @@ file other than a directory.
 
 # VERSIONS
 
-**open_tree**() was added to Linux in kernel 4.18.
+**open_tree**() was added to Linux in kernel 5.2.
 
 # CONFORMING TO
 
