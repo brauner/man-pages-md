@@ -32,7 +32,7 @@ close-on-exec flag is set on the file descriptor.
 ## The *flags* mask
 
 The *flags* argument either has the value 0, or contains the following
-flag:
+flags:
 
 **PIDFD_NONBLOCK** (since Linux 5.10)  
 Return a nonblocking file descriptor. If the process referred to by the
