@@ -185,6 +185,11 @@ location outside the process's accessible address space.
 **EINVAL**  
 Reserved flag specified in *flags*.
 
+**EINVAL**
+The source mount is already mounted somewhere else. Clone it via
+**open_tree** with **OPEN_TREE_CLONE** and use that as the source
+instead (since Linux 6.15).
+
 **EINVAL**  
 **MOVE_MOUNT_BENEATH** was attempted beneath the rootfs, a **chroot**(),
 or **pivot_root**(2).
