@@ -26,13 +26,13 @@ The target is whichever superblock backs the object determined by *dfd*,
 *pathname* and *flags*. The following can be set in *flags* to control
 the pathwalk to that object:
 
-**FSPICK_SYMLINK_NOFOLLOW**  
+**FSPICK_SYMLINK_NOFOLLOW**
 Don't follow symbolic links in the terminal component of the path.
 
-**FSPICK_NO_AUTOMOUNT**  
+**FSPICK_NO_AUTOMOUNT**
 Don't follow automounts in the terminal component of the path.
 
-**FSPICK_EMPTY_PATH**  
+**FSPICK_EMPTY_PATH**
 Allow an empty string to be specified as the pathname. This allows
 *dirfd* to specify a path exactly.
 
@@ -58,13 +58,13 @@ The context file descriptor may be queried for message strings at any
 time by calling **read**(2) on the file descriptor. This will return
 formatted messages that are prefixed to indicate their class:
 
-**"e \<message\>"**  
+**"e \<message\>"**
 An error message string was logged.
 
-**"i \<message\>"**  
+**"i \<message\>"**
 An informational message string was logged.
 
-**"w \<message\>"**  
+**"w \<message\>"**
 An warning message string was logged.
 
 Messages are removed from the queue as they're read and the queue has a
@@ -91,35 +91,35 @@ The error values given below result from filesystem type independent
 errors. Each filesystem type may have its own special errors and its own
 special behavior. See the Linux kernel source code for details.
 
-**EACCES**  
+**EACCES**
 A component of a path was not searchable. (See also
 **path_resolution**(7).)
 
-**EFAULT**  
+**EFAULT**
 *pathname* points outside the user address space.
 
-**EINVAL**  
+**EINVAL**
 *flags* includes an undefined value.
 
-**ELOOP**  
+**ELOOP**
 Too many links encountered during pathname resolution.
 
-**EMFILE**  
+**EMFILE**
 The system has too many open files to create more.
 
-**ENFILE**  
+**ENFILE**
 The process has too many open files to create more.
 
-**ENAMETOOLONG**  
+**ENAMETOOLONG**
 A pathname was longer than **MAXPATHLEN**.
 
-**ENOENT**  
+**ENOENT**
 A pathname was empty or had a nonexistent component.
 
-**ENOMEM**  
+**ENOMEM**
 The kernel could not allocate sufficient memory to complete the call.
 
-**EPERM**  
+**EPERM**
 The caller does not have the required privileges.
 
 # CONFORMING TO

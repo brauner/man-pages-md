@@ -39,21 +39,21 @@ to locate the mount object to be moved and *to_pathname*, *to_dirfd* and
 another part of *flags* to locate the destination mountpoint. Each
 lookup can be done in one of a variety of ways:
 
-\[\*\] By absolute path.  
+\[\*\] By absolute path.
 The pathname points to an absolute path and the dirfd is ignored. The
 file is looked up by name, starting from the root of the filesystem as
 seen by the calling process.
 
-\[\*\] By cwd-relative path.  
+\[\*\] By cwd-relative path.
 The pathname points to a relative path and the dirfd is *AT_FDCWD*. The
 file is looked up by name, starting from the current working directory.
 
-\[\*\] By dir-relative path.  
+\[\*\] By dir-relative path.
 The pathname points to relative path and the dirfd indicates a file
 descriptor pointing to a directory. The file is looked up by name,
 starting from the directory specified by *dirfd*.
 
-\[\*\] By file descriptor.  
+\[\*\] By file descriptor.
 The pathname points to "", the dirfd points directly to the mount object
 to move or the destination mount point and the appropriate
 **\*\_EMPTY_PATH** flag is set.
@@ -62,7 +62,7 @@ to move or the destination mount point and the appropriate
 *flags* is constructed by OR'ing together zero or more of the following
 constants:
 
-**MOVE_MOUNT_F_EMPTY_PATH**  
+**MOVE_MOUNT_F_EMPTY_PATH**
 If *from_pathname* is an empty string, operate on the file referred to
 by *from_dirfd* (which may have been obtained using the **open**(2)
 **O_PATH** flag or **open_tree**()) If *from_dirfd* is **AT_FDCWD**, the
@@ -71,10 +71,10 @@ call operates on the current working directory. In this case,
 flag is Linux-specific; define **\_GNU_SOURCE** to obtain its
 definition.
 
-**MOVE_MOUNT_T_EMPTY_PATH**  
+**MOVE_MOUNT_T_EMPTY_PATH**
 As above, but operating on *to_pathname* and *to_dirfd*.
 
-**MOVE_MOUNT_F_NO_AUTOMOUNT**  
+**MOVE_MOUNT_F_NO_AUTOMOUNT**
 Don't automount the terminal ("basename") component of *from_pathname*
 if it is a directory that is an automount point. This allows a mount
 object that has an automount point at its root to be moved and prevents
@@ -83,23 +83,23 @@ unintended triggering of an automount point. The
 has already been mounted over. This flag is Linux-specific; define
 **\_GNU_SOURCE** to obtain its definition.
 
-**MOVE_MOUNT_T_NO_AUTOMOUNT**  
+**MOVE_MOUNT_T_NO_AUTOMOUNT**
 As above, but operating on *to_pathname* and *to_dirfd*. This allows an
 automount point to be manually mounted over.
 
-**MOVE_MOUNT_F_SYMLINKS**  
+**MOVE_MOUNT_F_SYMLINKS**
 If *from_pathname* is a symbolic link, then dereference it. The default
 for **move_mount**() is to not follow symlinks.
 
-**MOVE_MOUNT_T_SYMLINKS**  
+**MOVE_MOUNT_T_SYMLINKS**
 As above, but operating on *to_pathname* and *to_dirfd*.
 
-**MOVE_MOUNT_SET_GROUP** (since Linux 5.15)  
+**MOVE_MOUNT_SET_GROUP** (since Linux 5.15)
 Add an existing private mount into a propagation group. This makes it
 possible to first create a mount tree consisting only of private mounts
 and configuring the desired propagation layout afterwards.
 
-**MOVE_MOUNT_BENEATH** (since Linux 6.5)  
+**MOVE_MOUNT_BENEATH** (since Linux 6.5)
 Move a mount beneath the current top mount in a mount stack. After
 moving a mount beneath the top mount it is possible to unmount the top
 mount and reveal the mount that was moved beneath it earlier. This
@@ -171,68 +171,73 @@ appropriately.
 
 # ERRORS
 
-**EACCES**  
+**EACCES**
 Search permission is denied for one of the directories in the path
 prefix of *pathname*. (See also **path_resolution**(7).)
 
-**EBADF**  
+**EBADF**
 *from_dirfd* or *to_dirfd* is not a valid open file descriptor.
 
-**EFAULT**  
+**EFAULT**
 *from_pathname* or *to_pathname* is NULL or either one point to a
 location outside the process's accessible address space.
 
-**EINVAL**  
+**EINVAL**
 Reserved flag specified in *flags*.
 
-**EINVAL**  
+**EINVAL**
+The source mount is already mounted somewhere else. Clone it via
+**open_tree** with **OPEN_TREE_CLONE** and use that as the source
+instead (since Linux 6.15).
+
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted beneath the rootfs, a **chroot**(),
 or **pivot_root**(2).
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted and the path to mount beneath is
 not a mount.
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted and path to mount beneath is a
 detached mount gotten via **OPEN_TREE_CLONE** from **open_tree**(2).
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted and the current top mount or its
 current parent mount are not in the caller's mount namespace.
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted but the caller doesn't have the
 ability unmount the current top mount.
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
 mount propagates to the top mount.
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
 mount propagates to the mount that is supposed to be mounted beneath the
 top mount.
 
-**EINVAL**  
+**EINVAL**
 **MOVE_MOUNT_BENEATH** was attempted but because of a concurrent mounter
 the mount to move beneath has been overmounted.
 
-**ELOOP**  
+**ELOOP**
 Too many symbolic links encountered while traversing the pathname.
 
-**ENAMETOOLONG**  
+**ENAMETOOLONG**
 *from_pathname* or *to_pathname* is too long.
 
-**ENOENT**  
+**ENOENT**
 A component of *from_pathname* or *to_pathname* does not exist, or one
 is an empty string and the appropriate **\*\_EMPTY_PATH** was not
 specified in *flags*.
 
-**ENOMEM**  
+**ENOMEM**
 Out of memory (i.e., kernel memory).
 
-**ENOTDIR**  
+**ENOTDIR**
 A component of the path prefix of *from_pathname* or *to_pathname* is
 not a directory or one or the other is relative and the appropriate
 *\*\_dirfd* is a file descriptor referring to a file other than a

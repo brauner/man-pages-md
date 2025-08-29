@@ -53,17 +53,17 @@ the initial version of *struct mount_attr* is **MOUNT_ATTR_SIZE_VER0**.
 The *flags* argument can be used to alter the pathname resolution
 behavior. The supported values are:
 
-**AT_EMPTY_PATH**  
+**AT_EMPTY_PATH**
 If *pathname* is the empty string, change the mount properties on
 *dirfd* itself.
 
-**AT_RECURSIVE**  
+**AT_RECURSIVE**
 Change the mount properties of the entire mount tree.
 
-**AT_SYMLINK_NOFOLLOW**  
+**AT_SYMLINK_NOFOLLOW**
 Don't follow trailing symbolic links.
 
-**AT_NO_AUTOMOUNT**  
+**AT_NO_AUTOMOUNT**
 Don't trigger automounts.
 
 The *attr* argument of **mount_setattr**() is a structure of the
@@ -117,32 +117,32 @@ applied.
 The following mount attributes can be specified in the *attr_set* or
 *attr_clr* fields:
 
-**MOUNT_ATTR_RDONLY**  
+**MOUNT_ATTR_RDONLY**
 If set in *attr_set*, makes the mount read-only. If set in *attr_clr*,
 removes the read-only setting if set on the mount.
 
-**MOUNT_ATTR_NOSUID**  
+**MOUNT_ATTR_NOSUID**
 If set in *attr_set*, causes the mount not to honor the set-user-ID and
 set-group-ID mode bits and file capabilities when executing programs. If
 set in *attr_clr*, clears the set-user-ID, set-group-ID, and file
 capability restriction if set on this mount.
 
-**MOUNT_ATTR_NODEV**  
+**MOUNT_ATTR_NODEV**
 If set in *attr_set*, prevents access to devices on this mount. If set
 in *attr_clr*, removes the restriction that prevented accessing devices
 on this mount.
 
-**MOUNT_ATTR_NOEXEC**  
+**MOUNT_ATTR_NOEXEC**
 If set in *attr_set*, prevents executing programs on this mount. If set
 in *attr_clr*, removes the restriction that prevented executing programs
 on this mount.
 
-**MOUNT_ATTR_NOSYMFOLLOW**  
+**MOUNT_ATTR_NOSYMFOLLOW**
 If set in *attr_set*, prevents following symbolic links on this mount.
 If set in *attr_clr*, removes the restriction that prevented following
 symbolic links on this mount.
 
-**MOUNT_ATTR_NODIRATIME**  
+**MOUNT_ATTR_NODIRATIME**
 If set in *attr_set*, prevents updating access time for directories on
 this mount. If set in *attr_clr*, removes the restriction that prevented
 updating access time for directories. Note that
@@ -150,7 +150,7 @@ updating access time for directories. Note that
 settings and is implied by the noatime setting. All other access-time
 settings are mutually exclusive.
 
-**MOUNT_ATTR\_\_ATIME** - changing access-time settings  
+**MOUNT_ATTR\_\_ATIME** - changing access-time settings
 The access-time values listed below are an enumeration that includes the
 value zero, expressed in the bits defined by the mask
 **MOUNT_ATTR\_\_ATIME**. Even though these bits are an enumeration (in
@@ -167,7 +167,7 @@ kernel will verify that **MOUNT_ATTR\_\_ATIME** isn't partially set in
 field are either set or clear), and that *attr_set* doesn't have any
 access-time bits set if **MOUNT_ATTR\_\_ATIME** isn't set in *attr_clr*.
 
-**MOUNT_ATTR_RELATIME**  
+**MOUNT_ATTR_RELATIME**
 When a file is accessed via this mount, update the file's last access
 time (atime) only if the current value of atime is less than or equal to
 the file's last modification time (mtime) or last status change time
@@ -177,14 +177,14 @@ To enable this access-time setting on a mount or mount tree,
 **MOUNT_ATTR_RELATIME** must be set in *attr_set* and
 **MOUNT_ATTR\_\_ATIME** must be set in the *attr_clr* field.
 
-**MOUNT_ATTR_NOATIME**  
+**MOUNT_ATTR_NOATIME**
 Do not update access times for (all types of) files on this mount.
 
 To enable this access-time setting on a mount or mount tree,
 **MOUNT_ATTR_NOATIME** must be set in *attr_set* and
 **MOUNT_ATTR\_\_ATIME** must be set in the *attr_clr* field.
 
-**MOUNT_ATTR_STRICTATIME**  
+**MOUNT_ATTR_STRICTATIME**
 Always update the last access time (atime) when files are accessed on
 this mount.
 
@@ -192,7 +192,7 @@ To enable this access-time setting on a mount or mount tree,
 **MOUNT_ATTR_STRICTATIME** must be set in *attr_set* and
 **MOUNT_ATTR\_\_ATIME** must be set in the *attr_clr* field.
 
-**MOUNT_ATTR_IDMAP**  
+**MOUNT_ATTR_IDMAP**
 If set in *attr_set*, creates an ID-mapped mount. The ID mapping is
 taken from the user namespace specified in *userns_fd* and attached to
 the mount.
@@ -207,16 +207,16 @@ The *propagation* field is used to specify the propagation type of the
 mount or mount tree. This field either has the value zero, meaning leave
 the propagation type unchanged, or it has one of the following values:
 
-**MS_PRIVATE**  
+**MS_PRIVATE**
 Turn all mounts into private mounts.
 
-**MS_SHARED**  
+**MS_SHARED**
 Turn all mounts into shared mounts.
 
-**MS_SLAVE**  
+**MS_SLAVE**
 Turn all mounts into dependent mounts.
 
-**MS_UNBINDABLE**  
+**MS_UNBINDABLE**
 Turn all mounts into unbindable mounts.
 
 For further details on the above propagation types, see
@@ -229,93 +229,93 @@ and *errno* is set to indicate the cause of the error.
 
 # ERRORS
 
-**EBADF**  
+**EBADF**
 *pathname* is relative but *dirfd* is neither **AT_FDCWD** nor a valid
 file descriptor.
 
-**EBADF**  
+**EBADF**
 *userns_fd* is not a valid file descriptor.
 
-**EBUSY**  
+**EBUSY**
 The caller tried to change the mount to **MOUNT_ATTR_RDONLY**, but the
 mount still holds files open for writing.
 
-**EBUSY**  
+**EBUSY**
 The caller tried to create an ID-mapped mount raising
 **MOUNT_ATTR_IDMAP** and specifying *userns_fd* but the mount still
 holds files open for writing.
 
-**EINVAL**  
+**EINVAL**
 The pathname specified via the *dirfd* and *pathname* arguments to
 **mount_setattr**() isn't a mount point.
 
-**EINVAL**  
+**EINVAL**
 An unsupported value was set in *flags*.
 
-**EINVAL**  
+**EINVAL**
 An unsupported value was specified in the *attr_set* field of
 *mount_attr*.
 
-**EINVAL**  
+**EINVAL**
 An unsupported value was specified in the *attr_clr* field of
 *mount_attr*.
 
-**EINVAL**  
+**EINVAL**
 An unsupported value was specified in the *propagation* field of
 *mount_attr*.
 
-**EINVAL**  
+**EINVAL**
 More than one of **MS_SHARED**, **MS_SLAVE**, **MS_PRIVATE**, or
 **MS_UNBINDABLE** was set in the *propagation* field of *mount_attr*.
 
-**EINVAL**  
+**EINVAL**
 An access-time setting was specified in the *attr_set* field without
 **MOUNT_ATTR\_\_ATIME** being set in the *attr_clr* field.
 
-**EINVAL**  
+**EINVAL**
 **MOUNT_ATTR_IDMAP** was specified in *attr_clr*.
 
-**EINVAL**  
+**EINVAL**
 A file descriptor value was specified in *userns_fd* which exceeds
 **INT_MAX**.
 
-**EINVAL**  
+**EINVAL**
 A valid file descriptor value was specified in *userns_fd*, but the file
 descriptor did not refer to a user namespace.
 
-**EINVAL**  
+**EINVAL**
 The underlying filesystem does not support ID-mapped mounts.
 
-**EINVAL**  
+**EINVAL**
 The mount that is to be ID mapped is not a detached mount; that is, the
 mount has not previously been visible in a mount namespace.
 
-**EINVAL**  
+**EINVAL**
 A partial access-time setting was specified in *attr_clr* instead of
 **MOUNT_ATTR\_\_ATIME** being set.
 
-**EINVAL**  
+**EINVAL**
 The mount is located outside the caller's mount namespace.
 
-**EINVAL**  
+**EINVAL**
 The underlying filesystem has been mounted in a mount namespace that is
 owned by a noninitial user namespace
 
-**ENOENT**  
+**ENOENT**
 A pathname was empty or had a nonexistent component.
 
-**ENOMEM**  
+**ENOMEM**
 When changing mount propagation to **MS_SHARED**, a new peer group ID
 needs to be allocated for all mounts without a peer group ID set. This
 allocation failed because there was not enough memory to allocate the
 relevant internal structures.
 
-**ENOSPC**  
+**ENOSPC**
 When changing mount propagation to **MS_SHARED**, a new peer group ID
 needs to be allocated for all mounts without a peer group ID set. This
 allocation failed because the kernel has run out of IDs.
 
-**EPERM**  
+**EPERM**
 One of the mounts had at least one of **MOUNT_ATTR_NOATIME**,
 **MOUNT_ATTR_NODEV**, **MOUNT_ATTR_NODIRATIME**, **MOUNT_ATTR_NOEXEC**,
 **MOUNT_ATTR_NOSUID**, or **MOUNT_ATTR_RDONLY** set and the flag is
@@ -337,15 +337,15 @@ locked. Mount attributes become locked on a mount if:
   (e.g., to remount a mount that was marked read-only as read-write in
   the new mount namespace).
 
-**EPERM**  
+**EPERM**
 A valid file descriptor value was specified in *userns_fd*, but the file
 descriptor refers to the initial user namespace.
 
-**EPERM**  
+**EPERM**
 An attempt was made to add an ID mapping to a mount that is already ID
 mapped.
 
-**EPERM**  
+**EPERM**
 The caller does not have **CAP_SYS_ADMIN** in the initial user
 namespace.
 

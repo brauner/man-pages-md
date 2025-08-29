@@ -27,23 +27,23 @@ command, these should be set to NULL or 0.
 
 The available commands are:
 
-**FSCONFIG_SET_FLAG**  
+**FSCONFIG_SET_FLAG**
 Set the parameter named by *key* to true. This may incur error
 **EINVAL** if the parameter requires an argument.
 
-**FSCONFIG_SET_STRING**  
+**FSCONFIG_SET_STRING**
 Set the parameter named by *key* to a string. This may incur error
 **EINVAL** if the parser doesn't want a parameter here, wants a
 non-string or the string cannot be interpreted appropriately. *value*
 points to a NUL-terminated string.
 
-**FSCONFIG_SET_BINARY**  
+**FSCONFIG_SET_BINARY**
 Set the parameter named by *key* to be a binary blob argument. This may
 cause **EINVAL** to be returned if the filesystem parser isn't expecting
 a binary blob and it can't be converted to something usable. *value*
 points to the data and *aux* indicates the size of the data.
 
-**FSCONFIG_SET_PATH**  
+**FSCONFIG_SET_PATH**
 Set the parameter named by *key* to the object at the provided path.
 *value* should point to a NULL-terminated pathname string and aux may
 indicate **AT_FDCWD** or a file descriptor indicating a directory from
@@ -53,11 +53,11 @@ expecting a path.
 
 Note that FSCONFIG_SET_STRING can be used instead, implying AT_FDCWD.
 
-**FSCONFIG_SET_PATH_EMPTY**  
+**FSCONFIG_SET_PATH_EMPTY**
 As FSCONFIG_SET_PATH, but with **AT_EMPTY_PATH** applied to the
 pathwalk.
 
-**FSCONFIG_SET_FD**  
+**FSCONFIG_SET_FD**
 Set the parameter named by *key* to the file descriptor specified by
 *aux*. This will incur **EINVAL** if the parameter doesn't expect a file
 descriptor or **EBADF** if the file descriptor is invalid.
@@ -65,14 +65,14 @@ descriptor or **EBADF** if the file descriptor is invalid.
 Note that FSCONFIG_SET_STRING can be used instead with the file
 descriptor passed as a decimal string.
 
-**FSCONFIG_CMD_CREATE**  
+**FSCONFIG_CMD_CREATE**
 This command causes the filesystem to take the parameters set in the
 context and to try to create filesystem representation in the kernel. If
 it can share an existing one, it may do that instead if the filesystem
 type and parameters permit that. This is intended for use with
 **fsopen**(2).
 
-**FSCONFIG_CMD_CREATE_EXCL** (since Linux 6.6)  
+**FSCONFIG_CMD_CREATE_EXCL** (since Linux 6.6)
 This command is imilar to **FSCONFIG_CMD_CREATE** but will return
 **EBUSY** if a matching superblock already exists. Userspace that needs
 to be sure that it did create a new superblock with the requested mount
@@ -80,7 +80,7 @@ options can request superblock creation using this command. If the
 command succeeds they can be sure that they did create a new superblock
 with the requested mount options.
 
-**FSCONFIG_CMD_RECONFIGURE**  
+**FSCONFIG_CMD_RECONFIGURE**
 This command causes the filesystem to apply the parameters set in the
 context to an already existing filesystem representation in memory and
 to alter it. This is intended for use with **fspick**(2), but may also
@@ -117,69 +117,69 @@ The error values given below result from filesystem type independent
 errors. Each filesystem type may have its own special errors and its own
 special behavior. See the Linux kernel source code for details.
 
-**EACCES**  
+**EACCES**
 A component of a path was not searchable. (See also
 **path_resolution**(7).)
 
-**EACCES**  
+**EACCES**
 Mounting a read-only filesystem was attempted without specifying the
 '**ro**' parameter.
 
-**EACCES**  
+**EACCES**
 A specified block device is located on a filesystem mounted with the
 **MS_NODEV** option.
 
-**EBADF**  
+**EBADF**
 The file descriptor given by *fd* or possibly by *aux* (depending on the
 command) is invalid.
 
-**EBUSY**  
+**EBUSY**
 The context attached to *fd* is in the wrong state for the given
 command.
 
-**EBUSY**  
+**EBUSY**
 The filesystem representation cannot be reconfigured read-only because
 it still holds files open for writing.
 
-**EBUSY**  
+**EBUSY**
 A new superblock was requested with **FSCONFIG_CMD_CREATE_EXCL** but a
 matching superblock already existed.
 
-**EFAULT**  
+**EFAULT**
 One of the pointer arguments points outside the user address space.
 
-**EINVAL**  
+**EINVAL**
 *fd* does not refer to a filesystem configuration context.
 
-**EINVAL**  
+**EINVAL**
 One of the source parameters referred to an invalid superblock.
 
-**ELOOP**  
+**ELOOP**
 Too many links encountered during pathname resolution.
 
-**ENAMETOOLONG**  
+**ENAMETOOLONG**
 A path name was longer than **MAXPATHLEN**.
 
-**ENOENT**  
+**ENOENT**
 A pathname was empty or had a nonexistent component.
 
-**ENOMEM**  
+**ENOMEM**
 The kernel could not allocate sufficient memory to complete the call.
 
-**ENOTBLK**  
+**ENOTBLK**
 Once of the parameters does not refer to a block device (and a device
 was required).
 
-**ENOTDIR**  
+**ENOTDIR**
 *pathname*, or a prefix of *source*, is not a directory.
 
-**EOPNOTSUPP**  
+**EOPNOTSUPP**
 The command given by *cmd* was not valid.
 
-**ENXIO**  
+**ENXIO**
 The major number of a block device parameter is out of range.
 
-**EPERM**  
+**EPERM**
 The caller does not have the required privileges.
 
 # CONFORMING TO

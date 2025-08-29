@@ -50,13 +50,13 @@ The context file descriptor may be queried for message strings at any
 time by calling **read**(2) on the file descriptor. This will return
 formatted messages that are prefixed to indicate their class:
 
-**"e \<message\>"**  
+**"e \<message\>"**
 An error message string was logged.
 
-**"i \<message\>"**  
+**"i \<message\>"**
 An informational message string was logged.
 
-**"w \<message\>"**  
+**"w \<message\>"**
 An warning message string was logged.
 
 Messages are removed from the queue as they're read.
@@ -107,25 +107,25 @@ The error values given below result from filesystem type independent
 errors. Each filesystem type may have its own special errors and its own
 special behavior. See the Linux kernel source code for details.
 
-**EFAULT**  
+**EFAULT**
 One of the pointer arguments points outside the user address space.
 
-**EINVAL**  
+**EINVAL**
 *flags* had an invalid flag set.
 
-**EMFILE**  
+**EMFILE**
 The system has too many open files to create more.
 
-**ENFILE**  
+**ENFILE**
 The process has too many open files to create more.
 
-**ENODEV**  
+**ENODEV**
 Filesystem *fsname* not configured in the kernel.
 
-**ENOMEM**  
+**ENOMEM**
 The kernel could not allocate sufficient memory to complete the call.
 
-**EPERM**  
+**EPERM**
 The caller does not have the required privileges.
 
 # CONFORMING TO
