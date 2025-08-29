@@ -44,26 +44,26 @@ The error values given below result from filesystem type independent
 errors. Each filesystem type may have its own special errors and its own
 special behavior. See the Linux kernel source code for details.
 
-**EBUSY**  
+**EBUSY**
 The context referred to by *fd* is not in the right state to be used by
 **fsmount**().
 
-**EFAULT**  
+**EFAULT**
 One of the pointer arguments points outside the user address space.
 
-**EINVAL**  
+**EINVAL**
 *flags* had an invalid flag set.
 
-**EINVAL**  
+**EINVAL**
 *mount_attrs,* includes invalid **MOUNT_ATTR\_\*** flags.
 
-**EMFILE**  
+**EMFILE**
 The system has too many open files to create more.
 
-**ENFILE**  
+**ENFILE**
 The process has too many open files to create more.
 
-**ENOMEM**  
+**ENOMEM**
 The kernel could not allocate sufficient memory to complete the call.
 
 # CONFORMING TO

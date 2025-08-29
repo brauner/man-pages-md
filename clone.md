@@ -236,14 +236,14 @@ The *flags* mask is specified as a bitwise OR of zero or more of the
 constants listed below. Except as noted below, these flags are available
 (and have the same effect) in both **clone**() and **clone3**().
 
-**CLONE_CHILD_CLEARTID** (since Linux 2.5.49)  
+**CLONE_CHILD_CLEARTID** (since Linux 2.5.49)
 Clear (zero) the child thread ID at the location pointed to by
 *child_tid* (**clone**()) or *cl_args.child_tid* (**clone3**()) in child
 memory when the child exits, and do a wakeup on the futex at that
 address. The address involved may be changed by the
 **set_tid_address**(2) system call. This is used by threading libraries.
 
-**CLONE_CHILD_SETTID** (since Linux 2.5.49)  
+**CLONE_CHILD_SETTID** (since Linux 2.5.49)
 Store the child thread ID at the location pointed to by *child_tid*
 (**clone**()) or *cl_args.child_tid* (**clone3**()) in the child's
 memory. The store operation completes before the clone call returns
@@ -252,7 +252,7 @@ operation may not have completed before the clone call returns in the
 parent process, which is relevant if the **CLONE_VM** flag is also
 employed.)
 
-**CLONE_CLEAR_SIGHAND** (since Linux 5.5)  
+**CLONE_CLEAR_SIGHAND** (since Linux 5.5)
 By default, signal dispositions in the child thread are the same as in
 the parent. If this flag is specified, then all signals that are handled
 in the parent (and not set to **SIG_IGN**) are reset to their default
@@ -261,7 +261,7 @@ dispositions (**SIG_DFL**) in the child.
 Specifying this flag together with **CLONE_SIGHAND** is nonsensical and
 disallowed.
 
-**CLONE_DETACHED** (historical)  
+**CLONE_DETACHED** (historical)
 For a while (during the Linux 2.5 development series) there was a
 **CLONE_DETACHED** flag, which caused the parent not to receive a signal
 when the child terminated. Ultimately, the effect of this flag was
@@ -273,7 +273,7 @@ This flag is still defined, but it is usually ignored when calling
 **clone**(). However, see the description of **CLONE_PIDFD** for some
 exceptions.
 
-**CLONE_FILES** (since Linux 2.0)  
+**CLONE_FILES** (since Linux 2.0)
 If **CLONE_FILES** is set, the calling process and the child process
 share the same file descriptor table. Any file descriptor created by the
 calling process or by the child process is also valid in the other
@@ -293,7 +293,7 @@ descriptions as the corresponding file descriptors in the calling
 process, and thus share file offsets and file status flags (see
 **open**(2)).
 
-**CLONE_FS** (since Linux 2.0)  
+**CLONE_FS** (since Linux 2.0)
 If **CLONE_FS** is set, the caller and the child process share the same
 filesystem information. This includes the root of the filesystem, the
 current working directory, and the umask. Any call to **chroot**(2),
@@ -305,7 +305,7 @@ filesystem information of the calling process at the time of the clone
 call. Calls to **chroot**(2), **chdir**(2), or **umask**(2) performed
 later by one of the processes do not affect the other process.
 
-**CLONE_INTO_CGROUP** (since Linux 5.7)  
+**CLONE_INTO_CGROUP** (since Linux 5.7)
 By default, a child process is placed in the same version 2 cgroup as
 its parent. The **CLONE_INTO_CGROUP** flag allows the child process to
 be created in a different version 2 cgroup. (Note that
@@ -340,7 +340,7 @@ following:
   establish a fixed cgroup layout before spawning each thread directly
   into its target cgroup.
 
-**CLONE_IO** (since Linux 2.6.25)  
+**CLONE_IO** (since Linux 2.6.25)
 If **CLONE_IO** is set, then the new process shares an I/O context with
 the calling process. If this flag is not set, then (as with **fork**(2))
 the new process has its own I/O context.
@@ -357,7 +357,7 @@ employ **CLONE_IO** to get better I/O performance.
 If the kernel is not configured with the **CONFIG_BLOCK** option, this
 flag is a no-op.
 
-**CLONE_NEWCGROUP** (since Linux 4.6)  
+**CLONE_NEWCGROUP** (since Linux 4.6)
 Create the process in a new cgroup namespace. If this flag is not set,
 then (as with **fork**(2)) the process is created in the same cgroup
 namespaces as the calling process.
@@ -368,7 +368,7 @@ For further information on cgroup namespaces, see
 Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWCGROUP**.
 
-**CLONE_NEWIPC** (since Linux 2.6.19)  
+**CLONE_NEWIPC** (since Linux 2.6.19)
 If **CLONE_NEWIPC** is set, then create the process in a new IPC
 namespace. If this flag is not set, then (as with **fork**(2)), the
 process is created in the same IPC namespace as the calling process.
@@ -379,7 +379,7 @@ Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWIPC**. This flag can't be specified in conjunction with
 **CLONE_SYSVSEM**.
 
-**CLONE_NEWNET** (since Linux 2.6.24)  
+**CLONE_NEWNET** (since Linux 2.6.24)
 (The implementation of this flag was completed only by about Linux
 2.6.29.)
 
@@ -393,7 +393,7 @@ For further information on network namespaces, see
 Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWNET**.
 
-**CLONE_NEWNS** (since Linux 2.4.19)  
+**CLONE_NEWNS** (since Linux 2.4.19)
 If **CLONE_NEWNS** is set, the cloned child is started in a new mount
 namespace, initialized with a copy of the namespace of the parent. If
 **CLONE_NEWNS** is not set, the child lives in the same mount namespace
@@ -406,7 +406,7 @@ Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWNS**. It is not permitted to specify both **CLONE_NEWNS** and
 **CLONE_FS** in the same clone call.
 
-**CLONE_NEWPID** (since Linux 2.6.24)  
+**CLONE_NEWPID** (since Linux 2.6.24)
 If **CLONE_NEWPID** is set, then create the process in a new PID
 namespace. If this flag is not set, then (as with **fork**(2)) the
 process is created in the same PID namespace as the calling process.
@@ -418,7 +418,7 @@ Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWPID**. This flag can't be specified in conjunction with
 **CLONE_THREAD**.
 
-**CLONE_NEWUSER**  
+**CLONE_NEWUSER**
 (This flag first became meaningful for **clone**() in Linux 2.6.23, the
 current **clone**() semantics were merged in Linux 3.5, and the final
 pieces to make the user namespaces completely usable were merged in
@@ -440,7 +440,7 @@ This flag can't be specified in conjunction with **CLONE_THREAD** or
 **CLONE_PARENT**. For security reasons, **CLONE_NEWUSER** cannot be
 specified in conjunction with **CLONE_FS**.
 
-**CLONE_NEWUTS** (since Linux 2.6.19)  
+**CLONE_NEWUTS** (since Linux 2.6.19)
 If **CLONE_NEWUTS** is set, then create the process in a new UTS
 namespace, whose identifiers are initialized by duplicating the
 identifiers from the UTS namespace of the calling process. If this flag
@@ -452,7 +452,7 @@ For further information on UTS namespaces, see **uts_namespaces**(7).
 Only a privileged process (**CAP_SYS_ADMIN**) can employ
 **CLONE_NEWUTS**.
 
-**CLONE_PARENT** (since Linux 2.3.12)  
+**CLONE_PARENT** (since Linux 2.3.12)
 If **CLONE_PARENT** is set, then the parent of the new child (as
 returned by **getppid**(2)) will be the same as that of the calling
 process.
@@ -471,14 +471,14 @@ other PID namespaces. This restriction prevents the creation of
 multi-rooted process trees as well as the creation of unreapable zombies
 in the initial PID namespace.
 
-**CLONE_PARENT_SETTID** (since Linux 2.5.49)  
+**CLONE_PARENT_SETTID** (since Linux 2.5.49)
 Store the child thread ID at the location pointed to by *parent_tid*
 (**clone**()) or *cl_args.parent_tid* (**clone3**()) in the parent's
 memory. (In Linux 2.5.32-2.5.48 there was a flag **CLONE_SETTID** that
 did this.) The store operation completes before the clone call returns
 control to user space.
 
-**CLONE_PID** (Linux 2.0 to Linux 2.5.15)  
+**CLONE_PID** (Linux 2.0 to Linux 2.5.15)
 If **CLONE_PID** is set, the child process is created with the same
 process ID as the calling process. This is good for hacking the system,
 but otherwise of not much use. From Linux 2.3.21 onward, this flag could
@@ -488,7 +488,7 @@ Subsequently, the kernel silently ignored this bit if it was specified
 in the *flags* mask. Much later, the same bit was recycled for use as
 the **CLONE_PIDFD** flag.
 
-**CLONE_PIDFD** (since Linux 5.2)  
+**CLONE_PIDFD** (since Linux 5.2)
 If this flag is specified, a PID file descriptor referring to the child
 process is allocated and placed at a specified location in the parent's
 memory. The close-on-exec flag is set on this new file descriptor. PID
@@ -514,11 +514,11 @@ also results if **CLONE_DETACHED** is specified when calling
 **CLONE_DETACHED** can be reused for further PID file descriptor
 features in the future.
 
-**CLONE_PTRACE** (since Linux 2.2)  
+**CLONE_PTRACE** (since Linux 2.2)
 If **CLONE_PTRACE** is specified, and the calling process is being
 traced, then trace the child also (see **ptrace**(2)).
 
-**CLONE_SETTLS** (since Linux 2.5.32)  
+**CLONE_SETTLS** (since Linux 2.5.32)
 The TLS (Thread Local Storage) descriptor is set to *tls*.
 
 The interpretation of *tls* and the resulting effect is architecture
@@ -531,7 +531,7 @@ is the new value of that register.
 Use of this flag requires detailed knowledge and generally it should not
 be used except in libraries implementing threading.
 
-**CLONE_SIGHAND** (since Linux 2.0)  
+**CLONE_SIGHAND** (since Linux 2.0)
 If **CLONE_SIGHAND** is set, the calling process and the child process
 share the same table of signal handlers. If the calling process or child
 process calls **sigaction**(2) to change the behavior associated with a
@@ -548,7 +548,7 @@ have no effect on the other process.
 Since Linux 2.6.0, the *flags* mask must also include **CLONE_VM** if
 **CLONE_SIGHAND** is specified.
 
-**CLONE_STOPPED** (since Linux 2.6.0)  
+**CLONE_STOPPED** (since Linux 2.6.0)
 If **CLONE_STOPPED** is set, then the child is initially stopped (as
 though it was sent a **SIGSTOP** signal), and must be resumed by sending
 it a **SIGCONT** signal.
@@ -558,7 +558,7 @@ altogether in Linux 2.6.38. Since then, the kernel silently ignores it
 without error. Starting with Linux 4.6, the same bit was reused for the
 **CLONE_NEWCGROUP** flag.
 
-**CLONE_SYSVSEM** (since Linux 2.5.10)  
+**CLONE_SYSVSEM** (since Linux 2.5.10)
 If **CLONE_SYSVSEM** is set, then the child and the calling process
 share a single list of System V semaphore adjustment (*semadj*) values
 (see **semop**(2)). In this case, the shared list accumulates *semadj*
@@ -568,7 +568,7 @@ terminates (or ceases sharing the list using **unshare**(2)). If this
 flag is not set, then the child has a separate *semadj* list that is
 initially empty.
 
-**CLONE_THREAD** (since Linux 2.4.0)  
+**CLONE_THREAD** (since Linux 2.4.0)
 If **CLONE_THREAD** is set, the child is placed in the same thread group
 as the calling process. To make the remainder of the discussion of
 **CLONE_THREAD** more readable, the term "thread" is used to refer to
@@ -643,11 +643,11 @@ that has not blocked the signal. If multiple threads in a group are
 waiting to accept the same signal using **sigwaitinfo**(2), the kernel
 will arbitrarily select one of these threads to receive the signal.
 
-**CLONE_UNTRACED** (since Linux 2.5.46)  
+**CLONE_UNTRACED** (since Linux 2.5.46)
 If **CLONE_UNTRACED** is specified, then a tracing process cannot force
 **CLONE_PTRACE** on this child process.
 
-**CLONE_VFORK** (since Linux 2.2)  
+**CLONE_VFORK** (since Linux 2.2)
 If **CLONE_VFORK** is set, the execution of the calling process is
 suspended until the child releases its virtual memory resources via a
 call to **execve**(2) or **\_exit**(2) (as with **vfork**(2)).
@@ -656,7 +656,7 @@ If **CLONE_VFORK** is not set, then both the calling process and the
 child are schedulable after the call, and an application should not rely
 on execution occurring in any particular order.
 
-**CLONE_VM** (since Linux 2.0)  
+**CLONE_VM** (since Linux 2.0)
 If **CLONE_VM** is set, the calling process and the child process run in
 the same memory space. In particular, memory writes performed by the
 calling process or by the child process are also visible in the other
@@ -682,127 +682,127 @@ error.
 
 # ERRORS
 
-**EACCES** (**clone3**() only)  
+**EACCES** (**clone3**() only)
 **CLONE_INTO_CGROUP** was specified in *cl_args.flags*, but the
 restrictions (described in **cgroups**(7)) on placing the child process
 into the version 2 cgroup referred to by *cl_args.cgroup* are not met.
 
-**EAGAIN**  
+**EAGAIN**
 Too many processes are already running; see **fork**(2).
 
-**EBUSY** (**clone3**() only)  
+**EBUSY** (**clone3**() only)
 **CLONE_INTO_CGROUP** was specified in *cl_args.flags*, but the file
 descriptor specified in *cl_args.cgroup* refers to a version 2 cgroup in
 which a domain controller is enabled.
 
-**EEXIST** (**clone3**() only)  
+**EEXIST** (**clone3**() only)
 One (or more) of the PIDs specified in *set_tid* already exists in the
 corresponding PID namespace.
 
-**EINVAL**  
+**EINVAL**
 Both **CLONE_SIGHAND** and **CLONE_CLEAR_SIGHAND** were specified in the
 *flags* mask.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_SIGHAND** was specified in the *flags* mask, but **CLONE_VM**
 was not. (Since Linux 2.6.0.)
 
-**EINVAL**  
+**EINVAL**
 **CLONE_THREAD** was specified in the *flags* mask, but
 **CLONE_SIGHAND** was not. (Since Linux 2.5.35.)
 
-**EINVAL**  
+**EINVAL**
 **CLONE_THREAD** was specified in the *flags* mask, but the current
 process previously called **unshare**(2) with the **CLONE_NEWPID** flag
 or used **setns**(2) to reassociate itself with a PID namespace.
 
-**EINVAL**  
+**EINVAL**
 Both **CLONE_FS** and **CLONE_NEWNS** were specified in the *flags*
 mask.
 
-**EINVAL** (since Linux 3.9)  
+**EINVAL** (since Linux 3.9)
 Both **CLONE_NEWUSER** and **CLONE_FS** were specified in the *flags*
 mask.
 
-**EINVAL**  
+**EINVAL**
 Both **CLONE_NEWIPC** and **CLONE_SYSVSEM** were specified in the
 *flags* mask.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWPID** and one (or both) of **CLONE_THREAD** or
 **CLONE_PARENT** were specified in the *flags* mask.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWUSER** and **CLONE_THREAD** were specified in the *flags*
 mask.
 
-**EINVAL** (since Linux 2.6.32)  
+**EINVAL** (since Linux 2.6.32)
 **CLONE_PARENT** was specified, and the caller is an init process.
 
-**EINVAL**  
+**EINVAL**
 Returned by the glibc **clone**() wrapper function when *fn* or *stack*
 is specified as NULL.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWIPC** was specified in the *flags* mask, but the kernel was
 not configured with the **CONFIG_SYSVIPC** and **CONFIG_IPC_NS**
 options.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWNET** was specified in the *flags* mask, but the kernel was
 not configured with the **CONFIG_NET_NS** option.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWPID** was specified in the *flags* mask, but the kernel was
 not configured with the **CONFIG_PID_NS** option.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWUSER** was specified in the *flags* mask, but the kernel was
 not configured with the **CONFIG_USER_NS** option.
 
-**EINVAL**  
+**EINVAL**
 **CLONE_NEWUTS** was specified in the *flags* mask, but the kernel was
 not configured with the **CONFIG_UTS_NS** option.
 
-**EINVAL**  
+**EINVAL**
 *stack* is not aligned to a suitable boundary for this architecture. For
 example, on aarch64, *stack* must be a multiple of 16.
 
-**EINVAL** (**clone3**() only)  
+**EINVAL** (**clone3**() only)
 **CLONE_DETACHED** was specified in the *flags* mask.
 
-**EINVAL** (**clone**() only)  
+**EINVAL** (**clone**() only)
 **CLONE_PIDFD** was specified together with **CLONE_DETACHED** in the
 *flags* mask.
 
-**EINVAL **(**clone**() only)  
+**EINVAL **(**clone**() only)
 **CLONE_PIDFD** was specified together with **CLONE_PARENT_SETTID** in
 the *flags* mask.
 
-**EINVAL** (**clone3**() only)  
+**EINVAL** (**clone3**() only)
 *set_tid_size* is greater than the number of nested PID namespaces.
 
-**EINVAL** (**clone3**() only)  
+**EINVAL** (**clone3**() only)
 One of the PIDs specified in *set_tid* was an invalid.
 
-**EINVAL** (**clone3**() only)  
+**EINVAL** (**clone3**() only)
 **CLONE_THREAD** or **CLONE_PARENT** was specified in the *flags* mask,
 but a signal was specified in *exit_signal*.
 
-**EINVAL** (AArch64 only, Linux 4.6 and earlier)  
+**EINVAL** (AArch64 only, Linux 4.6 and earlier)
 *stack* was not aligned to a 128-bit boundary.
 
-**ENOMEM**  
+**ENOMEM**
 Cannot allocate sufficient memory to allocate a task structure for the
 child, or to copy those parts of the caller's context that need to be
 copied.
 
-**ENOSPC** (since Linux 3.7)  
+**ENOSPC** (since Linux 3.7)
 **CLONE_NEWPID** was specified in the *flags* mask, but the limit on the
 nesting depth of PID namespaces would have been exceeded; see
 **pid_namespaces**(7).
 
-**ENOSPC** (since Linux 4.9; beforehand **EUSERS**)  
+**ENOSPC** (since Linux 4.9; beforehand **EUSERS**)
 **CLONE_NEWUSER** was specified in the *flags* mask, and the call would
 cause the limit on the number of nested user namespaces to be exceeded.
 See **user_namespaces**(7).
@@ -810,46 +810,46 @@ See **user_namespaces**(7).
 From Linux 3.11 to Linux 4.8, the error diagnosed in this case was
 **EUSERS**.
 
-**ENOSPC** (since Linux 4.9)  
+**ENOSPC** (since Linux 4.9)
 One of the values in the *flags* mask specified the creation of a new
 user namespace, but doing so would have caused the limit defined by the
 corresponding file in */proc/sys/user* to be exceeded. For further
 details, see **namespaces**(7).
 
-**EOPNOTSUPP** (**clone3**() only)  
+**EOPNOTSUPP** (**clone3**() only)
 **CLONE_INTO_CGROUP** was specified in *cl_args.flags*, but the file
 descriptor specified in *cl_args.cgroup* refers to a version 2 cgroup
 that is in the *domain invalid* state.
 
-**EPERM**  
+**EPERM**
 **CLONE_NEWCGROUP**, **CLONE_NEWIPC**, **CLONE_NEWNET**,
 **CLONE_NEWNS**, **CLONE_NEWPID**, or **CLONE_NEWUTS** was specified by
 an unprivileged process (process without **CAP_SYS_ADMIN**).
 
-**EPERM**  
+**EPERM**
 **CLONE_PID** was specified by a process other than process 0. (This
 error occurs only on Linux 2.5.15 and earlier.)
 
-**EPERM**  
+**EPERM**
 **CLONE_NEWUSER** was specified in the *flags* mask, but either the
 effective user ID or the effective group ID of the caller does not have
 a mapping in the parent namespace (see **user_namespaces**(7)).
 
-**EPERM** (since Linux 3.9)  
+**EPERM** (since Linux 3.9)
 **CLONE_NEWUSER** was specified in the *flags* mask and the caller is in
 a chroot environment (i.e., the caller's root directory does not match
 the root directory of the mount namespace in which it resides).
 
-**EPERM** (**clone3**() only)  
+**EPERM** (**clone3**() only)
 *set_tid_size* was greater than zero, and the caller lacks the
 **CAP_SYS_ADMIN** capability in one or more of the user namespaces that
 own the corresponding PID namespaces.
 
-**ERESTARTNOINTR** (since Linux 2.6.17)  
+**ERESTARTNOINTR** (since Linux 2.6.17)
 System call was interrupted by a signal and will be restarted. (This can
 be seen only during a trace.)
 
-**EUSERS** (Linux 3.11 to Linux 4.8)  
+**EUSERS** (Linux 3.11 to Linux 4.8)
 **CLONE_NEWUSER** was specified in the *flags* mask, and the limit on
 the number of nested user namespaces would be exceeded. See the
 discussion of the **ENOSPC** error above.
@@ -951,7 +951,7 @@ Linux.
 
 # HISTORY
 
-**clone3**()  
+**clone3**()
 Linux 5.3.
 
 ## Linux 2.4 and earlier

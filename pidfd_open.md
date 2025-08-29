@@ -34,13 +34,13 @@ close-on-exec flag is set on the file descriptor.
 The *flags* argument either has the value 0, or contains the following
 flags:
 
-**PIDFD_NONBLOCK** (since Linux 5.10)  
+**PIDFD_NONBLOCK** (since Linux 5.10)
 Return a nonblocking file descriptor. If the process referred to by the
 file descriptor has not yet terminated, then an attempt to wait on the
 file descriptor using **waitid**(2) will immediately return the error
 **EAGAIN** rather than blocking.
 
-**PIDFD_THREAD** (since Linux v6.9)  
+**PIDFD_THREAD** (since Linux v6.9)
 Create a pidfd that refers to a specific thread.
 
 # RETURN VALUE
@@ -51,27 +51,27 @@ error.
 
 # ERRORS
 
-**EINVAL**  
+**EINVAL**
 *flags* is not valid.
 
-**EINVAL**  
+**EINVAL**
 *pid* is not valid.
 
-**EMFILE**  
+**EMFILE**
 The per-process limit on the number of open file descriptors has been
 reached (see the description of **RLIMIT_NOFILE** in **getrlimit**(2)).
 
-**ENFILE**  
+**ENFILE**
 The system-wide limit on the total number of open files has been
 reached.
 
-**ENODEV**  
+**ENODEV**
 The anonymous inode filesystem is not available in this kernel.
 
-**ENOMEM**  
+**ENOMEM**
 Insufficient kernel memory was available.
 
-**ESRCH**  
+**ESRCH**
 The process specified by *pid* does not exist.
 
 # STANDARDS
