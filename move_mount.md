@@ -1,256 +1,332 @@
 # NAME
 
-move_mount - Move mount objects around the filesystem topology
+move_mount - move or attach mount object to filesystem
+
+# LIBRARY
+
+Standard C library (*libc*, *-lc*)
 
 # SYNOPSIS
 
-    #include <sys/types.h>
-    #include <sys/mount.h>
-    #include <unistd.h>
     #include <fcntl.h> /* Definition of AT_* constants */
-
-    int move_mount(int from_dirfd, const char *from_pathname,
-     int to_dirfd, const char *to_pathname,
+    #include <sys/mount.h>
+    int move_mount(int from_dirfd, const char *from_path,
+     int to_dirfd, const char *to_path,
      unsigned int flags);
-
-*Note*: There is no glibc wrapper for this system call.
 
 # DESCRIPTION
 
-The **move_mount**() call moves a mount from one place to another; it
-can also be used to attach an unattached mount created by **fsmount**()
-or **open_tree**() with **OPEN_TREE_CLONE**.
+The **move_mount**() system call is part of the suite of
+file-descriptor-based mount facilities in Linux.
 
-If **move_mount**() is called repeatedly with a file descriptor that
-refers to a mount object, then the object will be attached/moved the
-first time and then moved again and again and again, detaching it from
-the previous mountpoint each time.
+**move_mount**() moves the mount object indicated by *from_dirfd* and
+*from_path* to the path indicated by *to_dirfd* and *to_path*. The mount
+object being moved can be an existing mount point in the current mount
+namespace, or a detached mount object created by **fsmount**(2) or
+**open_tree**(2) with **OPEN_TREE_CLONE**.
 
-To access the source mount object or the destination mountpoint, no
+To access the source mount object or the destination mount point, no
 permissions are required on the object itself, but if either pathname is
 supplied, execute (search) permission is required on all of the
-directories specified in *from_pathname* or *to_pathname*.
+directories specified in *from_path* or *to_path*.
 
-The caller does, however, require the appropriate capabilities or
-permission to effect a mount.
+The calling process must have the **CAP_SYS_ADMIN** capability in order
+to move or attach a mount object.
 
-**move_mount**() uses *from_pathname*, *from_dirfd* and part of *flags*
-to locate the mount object to be moved and *to_pathname*, *to_dirfd* and
-another part of *flags* to locate the destination mountpoint. Each
-lookup can be done in one of a variety of ways:
+As with "\*at()" system calls, **move_mount**() uses the *from_dirfd*
+and *to_dirfd* arguments in conjunction with the *from_path* and
+*to_path* arguments to determine the source and destination objects to
+operate on (respectively), as follows:
 
-\[\*\] By absolute path.  
-The pathname points to an absolute path and the dirfd is ignored. The
-file is looked up by name, starting from the root of the filesystem as
-seen by the calling process.
+- If the pathname given in \**\_path* is absolute, then the
+  corresponding \**\_dirfd* is ignored.
 
-\[\*\] By cwd-relative path.  
-The pathname points to a relative path and the dirfd is *AT_FDCWD*. The
-file is looked up by name, starting from the current working directory.
+- If the pathname given in \**\_path* is relative and the corresponding
+  \**\_dirfd* is the special value **AT_FDCWD**, then \**\_path* is
+  interpreted relative to the current working directory of the calling
+  process (like **open**(2)).
 
-\[\*\] By dir-relative path.  
-The pathname points to relative path and the dirfd indicates a file
-descriptor pointing to a directory. The file is looked up by name,
-starting from the directory specified by *dirfd*.
+- If the pathname given in \**\_path* is relative, then it is
+  interpreted relative to the directory referred to by the corresponding
+  file descriptor \**\_dirfd* (rather than relative to the current
+  working directory of the calling process, as is done by **open**(2)
+  for a relative pathname). In this case, the corresponding \**\_dirfd*
+  must be a directory that was opened for reading (**O_RDONLY**) or
+  using the **O_PATH** flag.
 
-\[\*\] By file descriptor.  
-The pathname points to "", the dirfd points directly to the mount object
-to move or the destination mount point and the appropriate
-**\*\_EMPTY_PATH** flag is set.
+- If \**\_path* is an empty string, and *flags* contains the appropriate
+  **MOVE_MOUNT\_***\****\_EMPTY_PATH** flag, then the corresponding file
+  descriptor \**\_dirfd* is operated on directly. In this case, the
+  corresponding \**\_dirfd* may refer to any type of file, not just a
+  directory.
 
-*flags* can be used to influence a path-based lookup. A value for
-*flags* is constructed by OR'ing together zero or more of the following
-constants:
+See **openat**(2) for an explanation of why the \**\_dirfd* arguments
+are useful.
 
-**MOVE_MOUNT_F_EMPTY_PATH**  
-If *from_pathname* is an empty string, operate on the file referred to
-by *from_dirfd* (which may have been obtained using the **open**(2)
-**O_PATH** flag or **open_tree**()) If *from_dirfd* is **AT_FDCWD**, the
-call operates on the current working directory. In this case,
-*from_dirfd* can refer to any type of file, not just a directory. This
-flag is Linux-specific; define **\_GNU_SOURCE** to obtain its
-definition.
+*flags* can be used to control aspects of the path lookup for both the
+source and destination objects, as well as other properties of the mount
+operation. A value for *flags* is constructed by bitwise ORing zero or
+more of the following constants:
 
-**MOVE_MOUNT_T_EMPTY_PATH**  
-As above, but operating on *to_pathname* and *to_dirfd*.
+> **MOVE_MOUNT_F_EMPTY_PATH**  
+> If *from_path* is an empty string, operate on the file referred to by
+> *from_dirfd* (which may have been obtained from **open**(2),
+> **fsmount**(2), or **open_tree**(2)). In this case, *from_dirfd* may
+> refer to any type of file, not just a directory. If *from_dirfd* is
+> **AT_FDCWD**, **move_mount**() will operate on the current working
+> directory of the calling process.
+>
+> This is the most common mechanism used to attach detached mount
+> objects produced by **fsmount**(2) and **open_tree**(2) to a mount
+> point.
+>
+> **MOVE_MOUNT_T_EMPTY_PATH**  
+> As with **MOVE_MOUNT_F_EMPTY_PATH**, except operating on *to_dirfd*
+> and *to_path*.
+>
+> **MOVE_MOUNT_F_SYMLINKS**  
+> If *from_path* references a symbolic link, then dereference it. The
+> default behaviour for **move_mount**() is to *not follow* symbolic
+> links.
+>
+> **MOVE_MOUNT_T_SYMLINKS**  
+> As with **MOVE_MOUNT_F_SYMLINKS**, except operating on *to_dirfd* and
+> *to_path*.
+>
+> **MOVE_MOUNT_F_NO_AUTOMOUNT**  
+> Do not automount the terminal ("basename") component of *from_path* if
+> it is a directory that is an automount point. This allows a mount
+> object that has an automount point at its root to be moved and
+> prevents unintended triggering of an automount point. This flag has no
+> effect if the automount point has already been mounted over.
+>
+> **MOVE_MOUNT_T_NO_AUTOMOUNT**  
+> As with **MOVE_MOUNT_F_NO_AUTOMOUNT**, except operating on *to_dirfd*
+> and *to_path*. This allows an automount point to be manually mounted
+> over.
+>
+> **MOVE_MOUNT_SET_GROUP** (since Linux 5.15)  
+> Add the attached private-propagation mount object indicated by
+> *to_dirfd* and *to_path* into the mount propagation "peer group" of
+> the attached non-private-propagation mount object indicated by
+> *from_dirfd* and *from_path*.
+>
+> Unlike other **move_mount**() operations, this operation does not move
+> or attach any mount objects. Instead, it only updates the metadata of
+> attached mount objects. (Also, take careful note of the argument
+> order— the mount object being modified by this operation is the one
+> specified by *to_dirfd* and *to_path*.)
+>
+> This makes it possible to first create a mount tree consisting only of
+> private mounts and then configure the desired propagation layout
+> afterwards. (See the "SHARED SUBTREES" section of
+> **mount_namespaces**(7) for more information about mount propagation
+> and peer groups.)
+>
+> **MOVE_MOUNT_BENEATH** (since Linux 6.5)  
+> If the path indicated by *to_dirfd* and *to_path* is an existing mount
+> object, rather than attaching or moving the mount object indicated by
+> *from_dirfd* and *from_path* on top of the mount stack, attach or move
+> it beneath the current top mount on the mount stack.
+>
+> After using **MOVE_MOUNT_BENEATH**, it is possible to **umount**(2)
+> the top mount in order to reveal the mount object which was attached
+> beneath it earlier. This allows for the seamless (and atomic)
+> replacement of intricate mount trees, which can further be used to
+> "upgrade" a mount tree with a newer version.
+>
+> This operation has several restrictions:
+>
+> - Mount objects cannot be attached beneath the filesystem root,
+>   including cases where the filesystem root was configured by
+>   **chroot**(2) or **pivot_root**(2). To mount beneath the filesystem
+>   root, **pivot_root**(2) must be used.
+>
+> - The target path indicated by *to_dirfd* and *to_path* must not be a
+>   detached mount object, such as those produced by **open_tree**(2)
+>   with **OPEN_TREE_CLONE** or **fsmount**(2).
+>
+> - The current top mount of the target path's mount stack and its
+>   parent mount must be in the calling process's mount namespace.
+>
+> - The caller must have sufficient privileges to unmount the top mount
+>   of the target path's mount stack, to prove they have privileges to
+>   reveal the underlying mount.
+>
+> - Mount propagation events triggered by this **move_mount**()
+>   operation (as described in **mount_namespaces**(7)) are calculated
+>   based on the parent mount of the current top mount of the target
+>   path's mount stack.
+>
+> - The target path's mount cannot be an ancestor in the mount tree of
+>   the source mount object.
+>
+> - The source mount object must not have any overmounts, otherwise it
+>   would be possible to create "shadow mounts" (i.e., two mounts
+>   mounted on the same parent mount at the same mount point).
+>
+> - It is not possible to move a mount beneath a top mount if the parent
+>   mount of the current top mount propagates to the top mount itself.
+>   Otherwise, **MOVE_MOUNT_BENEATH** would cause the mount object to be
+>   propagated to the top mount from the parent mount, defeating the
+>   purpose of using **MOVE_MOUNT_BENEATH**.
+>
+> - It is not possible to move a mount beneath a top mount if the parent
+>   mount of the current top mount propagates to the mount object being
+>   mounted beneath. Otherwise, this would cause a similar propagation
+>   issue to the previous point, also defeating the purpose of using
+>   **MOVE_MOUNT_BENEATH**.
 
-**MOVE_MOUNT_F_NO_AUTOMOUNT**  
-Don't automount the terminal ("basename") component of *from_pathname*
-if it is a directory that is an automount point. This allows a mount
-object that has an automount point at its root to be moved and prevents
-unintended triggering of an automount point. The
-**MOVE_MOUNT_F_NO_AUTOMOUNT** flag has no effect if the automount point
-has already been mounted over. This flag is Linux-specific; define
-**\_GNU_SOURCE** to obtain its definition.
-
-**MOVE_MOUNT_T_NO_AUTOMOUNT**  
-As above, but operating on *to_pathname* and *to_dirfd*. This allows an
-automount point to be manually mounted over.
-
-**MOVE_MOUNT_F_SYMLINKS**  
-If *from_pathname* is a symbolic link, then dereference it. The default
-for **move_mount**() is to not follow symlinks.
-
-**MOVE_MOUNT_T_SYMLINKS**  
-As above, but operating on *to_pathname* and *to_dirfd*.
-
-**MOVE_MOUNT_SET_GROUP** (since Linux 5.15)  
-Add an existing private mount into a propagation group. This makes it
-possible to first create a mount tree consisting only of private mounts
-and configuring the desired propagation layout afterwards.
-
-**MOVE_MOUNT_BENEATH** (since Linux 6.5)  
-Move a mount beneath the current top mount in a mount stack. After
-moving a mount beneath the top mount it is possible to unmount the top
-mount and reveal the mount that was moved beneath it earlier. This
-allows to seamlessly upgrade mounts.
-
-The following restrictions apply:
-
-* Mounts cannot be moved beneath the rootfs. This restriction
-  encompasses the rootfs but also **chroot**(2), and **pivot_root**(2).
-  To mount a mount beneath the rootfs or a chroot **pivot_root**(2) must
-  be used.
-* The path to mount beneath must be a mount. However, the mount cannot
-  be a detached mount gotten via **OPEN_TREE_CLONE** from
-  **open_tree**(2).
-* The top mount and its current parent mount must be in the caller's
-  mount namespace.
-* The caller must be unable to unmount the current to mount to prove
-  that they could reveal the underlying mount.
-* The propagation tree is calculated based on the parent mount of the
-  current top mount.
-* It is not possible to move a mount beneath a top mount if the parent
-  mount of the current top mount propagates to the top mount itself.
-  This would otherwise cause the mount to move beneath the top mount to
-  propagate on top of the current top mount defeating the purpose of
-  mounting beneath the top mount.
-* It is not possible to move a mount beneath the top mount if the parent
-  of the top mount propagates to the mount that is supposed to mounted
-  on top of it. This would otherwise cause a similar overmounting
-  problem as mentioned earlier.
-* It is not possible to move a mount beneath if it has been overmounted
-  in the meantime as this would create shadow mounts, i.e., two mounts
-  mounted on the same parent mount at the same mountpoint.
-
-# EXAMPLES
-
-The **move_mount**() function can be used like the following:
-
->     move_mount(AT_FDCWD, "/a", AT_FDCWD, "/b", 0);
-
-This would move the object mounted on "/a" to "/b". It can also be used
-in conjunction with **open_tree**(2) or **open**(2) with **O_PATH**:
-
->     fd = open_tree(AT_FDCWD, "/mnt", 0);
->     move_mount(fd, "", AT_FDCWD, "/mnt2", MOVE_MOUNT_F_EMPTY_PATH);
->     move_mount(fd, "", AT_FDCWD, "/mnt3", MOVE_MOUNT_F_EMPTY_PATH);
->     move_mount(fd, "", AT_FDCWD, "/mnt4", MOVE_MOUNT_F_EMPTY_PATH);
-
-This would attach the path point for "/mnt" to fd, then it would move
-the mount to "/mnt2", then move it to "/mnt3" and finally to "/mnt4".
-
-It can also be used to attach new mounts:
-
->     sfd = fsopen("ext4", FSOPEN_CLOEXEC);
->     fsconfig(sfd, FSCONFIG_SET_STRING, "source", "/dev/sda1", 0);
->     fsconfig(sfd, FSCONFIG_SET_FLAG, "user_xattr", NULL, 0);
->     fsconfig(sfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
->     mfd = fsmount(sfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_NODEV);
->     move_mount(mfd, "", AT_FDCWD, "/home", MOVE_MOUNT_F_EMPTY_PATH);
-
-Which would open the Ext4 filesystem mounted on "/dev/sda1", turn on
-user extended attribute support and create a mount object for it.
-Finally, the new mount object would be attached with **move_mount**() to
-"/home".
+If *from_dirfd* is a mount object file descriptor and **move_mount**()
+is operating on it directly, *from_dirfd* will remain associated with
+the mount object after **move_mount**() succeeds, so you may repeatedly
+use *from_dirfd* with **move_mount**(2) and/or "\*at()" system calls as
+many times as necessary.
 
 # RETURN VALUE
 
-On success, 0 is returned. On error, -1 is returned, and *errno* is set
-appropriately.
+On success, **move_mount**() returns 0. On error, -1 is returned, and
+*errno* is set to indicate the error.
 
 # ERRORS
 
 **EACCES**  
 Search permission is denied for one of the directories in the path
-prefix of *pathname*. (See also **path_resolution**(7).)
+prefix of one of *from_path* or *to_path*. (See also
+**path_resolution**(7).)
 
 **EBADF**  
-*from_dirfd* or *to_dirfd* is not a valid open file descriptor.
+One of *from_dirfd* or *to_dirfd* is not a valid file descriptor.
 
 **EFAULT**  
-*from_pathname* or *to_pathname* is NULL or either one point to a
-location outside the process's accessible address space.
+One of *from_path* or *to_path* is NULL or a pointer to a location
+outside the calling process's accessible address space.
 
 **EINVAL**  
-Reserved flag specified in *flags*.
+Invalid flag specified in *flags*.
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted beneath the rootfs, a **chroot**(),
-or **pivot_root**(2).
+The path indicated by *from_dirfd* and *from_path* is not a mount
+object.
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted and the path to mount beneath is
-not a mount.
+The mount object type of the source mount object and target inode are
+not compatible (i.e., the source is a file but the target is a
+directory, or vice-versa).
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted and path to mount beneath is a
-detached mount gotten via **OPEN_TREE_CLONE** from **open_tree**(2).
+The source mount object or target path are not in the calling process's
+mount namespace (or an anonymous mount namespace of the calling
+process).
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted and the current top mount or its
-current parent mount are not in the caller's mount namespace.
+The source mount object's parent mount has shared mount propagation, and
+thus cannot be moved (as described in **mount_namespaces**(7)).
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted but the caller doesn't have the
-ability unmount the current top mount.
+The source mount has **MS_UNBINDABLE** child mounts but the target path
+resides on a mount tree with shared mount propagation, which would
+otherwise cause the unbindable mounts to be propagated (as described in
+**mount_namespaces**(7)).
 
 **EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
-mount propagates to the top mount.
-
-**EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted but the parent mount of the top
-mount propagates to the mount that is supposed to be mounted beneath the
-top mount.
-
-**EINVAL**  
-**MOVE_MOUNT_BENEATH** was attempted but because of a concurrent mounter
-the mount to move beneath has been overmounted.
+**MOVE_MOUNT_BENEATH** was attempted, but one of the listed restrictions
+was violated.
 
 **ELOOP**  
-Too many symbolic links encountered while traversing the pathname.
+Too many symbolic links encountered when resolving one of *from_path* or
+*to_path*.
 
 **ENAMETOOLONG**  
-*from_pathname* or *to_pathname* is too long.
+One of *from_path* or *to_path* is longer than **PATH_MAX**.
 
 **ENOENT**  
-A component of *from_pathname* or *to_pathname* does not exist, or one
-is an empty string and the appropriate **\*\_EMPTY_PATH** was not
-specified in *flags*.
+A component of one of *from_path* or *to_path* does not exist.
 
-**ENOMEM**  
-Out of memory (i.e., kernel memory).
+**ENOENT**  
+One of *from_path* or *to_path* is an empty string, but the
+corresponding **MOVE_MOUNT\_***\****\_EMPTY_PATH** flag is not specified
+in *flags*.
 
 **ENOTDIR**  
-A component of the path prefix of *from_pathname* or *to_pathname* is
-not a directory or one or the other is relative and the appropriate
-*\*\_dirfd* is a file descriptor referring to a file other than a
-directory.
+A component of the path prefix of one of *from_path* or *to_path* is not
+a directory, or one of *from_path* or *to_path* is relative and the
+corresponding *from_dirfd* or *to_dirfd* is a file descriptor referring
+to a file other than a directory.
 
-# VERSIONS
+**ENOMEM**  
+The kernel could not allocate sufficient memory to complete the
+operation.
 
-**move_mount**() was added to Linux in kernel 4.18.
+**EPERM**  
+The calling process does not have the required **CAP_SYS_ADMIN**
+capability.
 
-# CONFORMING TO
+# STANDARDS
 
-**move_mount**() is Linux-specific.
+Linux.
 
-# NOTES
+# HISTORY
 
-Glibc does not (yet) provide a wrapper for the **move_mount**() system
-call; call it using **syscall**(2).
+Linux 5.2. glibc 2.36.
+
+# EXAMPLES
+
+**move_mount**() can be used to move attached mounts like the following:
+
+    move_mount(AT_FDCWD, "/a", AT_FDCWD, "/b", 0);
+
+This would move the mount object mounted on */a* to */b*. The above
+procedure is functionally equivalent to the following mount operation
+using **mount**(2):
+
+    mount("/a", "/b", NULL, MS_MOVE, NULL);
+
+**move_mount**() can also be used in conjunction with file descriptors
+returned from **open_tree**(2) or **open**(2):
+
+    int fd = open_tree(AT_FDCWD, "/mnt", 0); /* open("/mnt", O_PATH); */
+    move_mount(fd, "", AT_FDCWD, "/mnt2", MOVE_MOUNT_F_EMPTY_PATH);
+    move_mount(fd, "", AT_FDCWD, "/mnt3", MOVE_MOUNT_F_EMPTY_PATH);
+    move_mount(fd, "", AT_FDCWD, "/mnt4", MOVE_MOUNT_F_EMPTY_PATH);
+
+This would move the mount object mounted at */mnt* to */mnt2*, then
+*/mnt3*, and then */mnt4*.
+
+If the source mount object indicated by *from_dirfd* and *from_path* is
+a detached mount object, **move_mount**() can be used to attach it to a
+mount point:
+
+    int fsfd, mntfd;
+    fsfd = fsopen("ext4", FSOPEN_CLOEXEC);
+    fsconfig(fsfd, FSCONFIG_SET_STRING, "source", "/dev/sda1", 0);
+    fsconfig(fsfd, FSCONFIG_SET_FLAG, "user_xattr", NULL, 0);
+    fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+    mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_NODEV);
+    move_mount(mntfd, "", AT_FDCWD, "/home", MOVE_MOUNT_F_EMPTY_PATH);
+
+This would create a new filesystem configuration context for ext4,
+configure it, create a detached mount object, and then attach it to
+*/home*. The above procedure is functionally equivalent to the following
+mount operation using **mount**(2):
+
+    mount("/dev/sda1", "/home", "ext4", MS_NODEV, "user_xattr");
+
+The same operation also works with detached bind-mounts created with
+**open_tree**(2) with **OPEN_TREE_CLONE**:
+
+    int mntfd = open_tree(AT_FDCWD, "/home/cyphar", OPEN_TREE_CLONE);
+    move_mount(mntfd, "", AT_FDCWD, "/root", MOVE_MOUNT_F_EMPTY_PATH);
+
+This would create a new bind-mount of */home/cyphar* as a detached mount
+object, and then attach it to */root*. The above procedure is
+functionally equivalent to the following mount operation using
+**mount**(2):
+
+    mount("/home/cyphar", "/root", NULL, MS_BIND, NULL);
 
 # SEE ALSO
 
-**fsmount**(2), **fsopen**(2), **open_tree**(2)
+**fsconfig**(2), **fsmount**(2), **fsopen**(2), **fspick**(2),
+**mount**(2), **mount_setattr**(2), **open_tree**(2),
+**mount_namespaces**(7)
