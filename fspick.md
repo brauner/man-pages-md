@@ -1,143 +1,185 @@
 # NAME
 
-fspick - Select filesystem for reconfiguration
+fspick - select filesystem for reconfiguration
+
+# LIBRARY
+
+Standard C library (*libc*, *-lc*)
 
 # SYNOPSIS
 
-    #include <sys/types.h>
-    #include <sys/mount.h>
-    #include <unistd.h>
     #include <fcntl.h> /* Definition of AT_* constants */
-
-    int fspick(int dirfd, const char *pathname, unsigned int flags);
-
-*Note*: There is no glibc wrapper for this system call.
+    #include <sys/mount.h>
+    int fspick(int dirfd, const char *path, unsigned int flags);
 
 # DESCRIPTION
 
-**fspick**() creates a new filesystem configuration context within the
-kernel and attaches a pre-existing superblock to it so that it can be
-reconfigured (similar to **mount**(8) with the "-o remount" option). The
-configuration context is marked as being in reconfiguration mode and
-attached to a file descriptor, which is returned to the caller. This can
-be marked close-on-exec by setting **FSPICK_CLOEXEC** in *flags*.
+The **fspick**() system call is part of the suite of
+file-descriptor-based mount facilities in Linux.
 
-The target is whichever superblock backs the object determined by *dfd*,
-*pathname* and *flags*. The following can be set in *flags* to control
-the pathwalk to that object:
+**fspick**() creates a new filesystem configuration context for the
+extant filesystem instance associated with the path described by *dirfd*
+and *path*, places it into reconfiguration mode (similar to **mount**(8)
+with the **-o remount** option). A new file descriptor associated with
+the filesystem configuration context is then returned. The calling
+process must have the **CAP_SYS_ADMIN** capability in order to create a
+new filesystem configuration context.
 
-**FSPICK_SYMLINK_NOFOLLOW**  
-Don't follow symbolic links in the terminal component of the path.
+The resultant file descriptor can be used with **fsconfig**(2) to
+specify the desired set of changes to filesystem parameters of the
+filesystem instance. Once the desired set of changes have been
+configured, the changes can be effectuated by calling **fsconfig**(2)
+with the **FSCONFIG_CMD_RECONFIGURE** command. In contrast to the
+behaviour of **MS_REMOUNT** with **mount**(2), **fspick**() instantiates
+the filesystem configuration context with a copy of the extant
+filesystem's filesystem parameters; thus, subsequent
+**FSCONFIG_CMD_RECONFIGURE** operations will only update filesystem
+parameters explicitly modified with **fsconfig**(2).
 
-**FSPICK_NO_AUTOMOUNT**  
-Don't follow automounts in the terminal component of the path.
+As with "\*at()" system calls, **fspick**() uses the *dirfd* argument in
+conjunction with the *path* argument to determine the path to operate
+on, as follows:
 
-**FSPICK_EMPTY_PATH**  
-Allow an empty string to be specified as the pathname. This allows
-*dirfd* to specify a path exactly.
+- If the pathname given in *path* is absolute, then *dirfd* is ignored.
 
-After calling fspick(), the file descriptor should be passed to the
-**fsconfig**(2) system call, using that to specify the desired changes
-to filesystem and security parameters.
+- If the pathname given in *path* is relative and *dirfd* is the special
+  value **AT_FDCWD**, then *path* is interpreted relative to the current
+  working directory of the calling process (like **open**(2)).
 
-When the parameters are all set, the **fsconfig**() system call should
-then be called again with **FSCONFIG_CMD_RECONFIGURE** as the command
-argument to effect the reconfiguration.
+- If the pathname given in *path* is relative, then it is interpreted
+  relative to the directory referred to by the file descriptor *dirfd*
+  (rather than relative to the current working directory of the calling
+  process, as is done by **open**(2) for a relative pathname). In this
+  case, *dirfd* must be a directory that was opened for reading
+  (**O_RDONLY**) or using the **O_PATH** flag.
 
-After the reconfiguration has taken place, the context is wiped clean
-(apart from the superblock attachment, which remains) and can be reused
-to make another reconfiguration.
+- If *path* is an empty string, and *flags* contains
+  **FSPICK_EMPTY_PATH**, then the file descriptor *dirfd* is operated on
+  directly. In this case, *dirfd* may refer to any type of file, not
+  just a directory.
 
-The file descriptor also serves as a channel by which more comprehensive
-error, warning and information messages may be retrieved from the kernel
-using **read**(2).
+See **openat**(2) for an explanation of why the *dirfd* argument is
+useful.
 
-## Message Retrieval Interface
+*flags* can be used to control aspects of how *path* is resolved and
+properties of the returned file descriptor. A value for *flags* is
+constructed by bitwise ORing zero or more of the following constants:
 
-The context file descriptor may be queried for message strings at any
-time by calling **read**(2) on the file descriptor. This will return
-formatted messages that are prefixed to indicate their class:
+> **FSPICK_CLOEXEC**  
+> Set the close-on-exec (**FD_CLOEXEC**) flag on the new file
+> descriptor. See the description of the **O_CLOEXEC** flag in
+> **open**(2) for reasons why this may be useful.
+>
+> **FSPICK_EMPTY_PATH**  
+> If *path* is an empty string, operate on the file referred to by
+> *dirfd* (which may have been obtained from **open**(2),
+> **fsmount**(2), or **open_tree**(2)). In this case, *dirfd* may refer
+> to any type of file, not just a directory. If *dirfd* is **AT_FDCWD**,
+> **fspick**() will operate on the current working directory of the
+> calling process.
+>
+> **FSPICK_SYMLINK_NOFOLLOW**  
+> Do not follow symbolic links in the terminal component of *path*. If
+> *path* references a symbolic link, the returned filesystem context
+> will reference the filesystem that the symbolic link itself resides
+> on.
+>
+> **FSPICK_NO_AUTOMOUNT**  
+> Do not automount the terminal ("basename") component of *path* if it
+> is a directory that is an automount point. This allows you to
+> reconfigure an automount point, rather than the location that would be
+> mounted. This flag has no effect if the automount point has already
+> been mounted over.
 
-**"e \<message\>"**  
-An error message string was logged.
-
-**"i \<message\>"**  
-An informational message string was logged.
-
-**"w \<message\>"**  
-An warning message string was logged.
-
-Messages are removed from the queue as they're read and the queue has a
-limited depth, so it's possible for some to get lost.
-
-# EXAMPLES
-
-To illustrate the process, here's an example whereby this can be used to
-reconfigure a filesystem:
-
-    sfd = fspick(AT_FDCWD, "/mnt", FSPICK_NO_AUTOMOUNT | FSPICK_CLOEXEC);
-    fsconfig(sfd, FSCONFIG_SET_FLAG, "ro", NULL, 0);
-    fsconfig(sfd, FSCONFIG_SET_STRING, "user_xattr", "false", 0);
-    fsconfig(sfd, FSCONFIG_CMD_RECONFIGURE, NULL, NULL, 0);
+As with filesystem contexts created with **fsopen**(2), the file
+descriptor returned by **fspick**() may be queried for message strings
+at any time by calling **read**(2) on the file descriptor. (See the
+"Message retrieval interface" subsection in **fsopen**(2) for more
+details on the message format.)
 
 # RETURN VALUE
 
-On success, the function returns a file descriptor. On error, -1 is
-returned, and *errno* is set appropriately.
+On success, a new file descriptor is returned. On error, -1 is returned,
+and *errno* is set to indicate the error.
 
 # ERRORS
 
-The error values given below result from filesystem type independent
-errors. Each filesystem type may have its own special errors and its own
-special behavior. See the Linux kernel source code for details.
-
 **EACCES**  
-A component of a path was not searchable. (See also
-**path_resolution**(7).)
+Search permission is denied for one of the directories in the path
+prefix of *path*. (See also **path_resolution**(7).)
+
+**EBADF**  
+*path* is relative but *dirfd* is neither **AT_FDCWD** nor a valid file
+descriptor.
 
 **EFAULT**  
-*pathname* points outside the user address space.
+*path* is NULL or a pointer to a location outside the calling process's
+accessible address space.
 
 **EINVAL**  
-*flags* includes an undefined value.
+Invalid flag specified in *flags*.
 
 **ELOOP**  
-Too many links encountered during pathname resolution.
+Too many symbolic links encountered when resolving *path*.
 
 **EMFILE**  
-The system has too many open files to create more.
-
-**ENFILE**  
-The process has too many open files to create more.
+The calling process has too many open files to create more.
 
 **ENAMETOOLONG**  
-A pathname was longer than **MAXPATHLEN**.
+*path* is longer than **PATH_MAX**.
+
+**ENFILE**  
+The system has too many open files to create more.
 
 **ENOENT**  
-A pathname was empty or had a nonexistent component.
+A component of *path* does not exist, or is a dangling symbolic link.
+
+**ENOENT**  
+*path* is an empty string, but **FSPICK_EMPTY_PATH** is not specified in
+*flags*.
+
+**ENOTDIR**  
+A component of the path prefix of *path* is not a directory; or *path*
+is relative and *dirfd* is a file descriptor referring to a file other
+than a directory.
 
 **ENOMEM**  
-The kernel could not allocate sufficient memory to complete the call.
+The kernel could not allocate sufficient memory to complete the
+operation.
 
 **EPERM**  
-The caller does not have the required privileges.
+The calling process does not have the required **CAP_SYS_ADMIN**
+capability.
 
-# CONFORMING TO
+# STANDARDS
 
-These functions are Linux-specific and should not be used in programs
-intended to be portable.
+Linux.
 
-# VERSIONS
+# HISTORY
 
-**fsopen**(), **fsmount**() and **fspick**() were added to Linux in
-kernel 5.1.
+Linux 5.2. glibc 2.36.
 
-# NOTES
+# EXAMPLES
 
-Glibc does not (yet) provide a wrapper for the **fspick**() system call;
-call it using **syscall**(2).
+The following example sets the read-only flag on the filesystem instance
+referenced by the mount object attached at */tmp*.
+
+    int fsfd = fspick(AT_FDCWD, "/tmp", FSPICK_CLOEXEC);
+    fsconfig(fsfd, FSCONFIG_SET_FLAG, "ro", NULL, 0);
+    fsconfig(fsfd, FSCONFIG_CMD_RECONFIGURE, NULL, NULL, 0);
+
+The above procedure is roughly equivalent to the following mount
+operation using **mount**(2):
+
+    mount(NULL, "/tmp", NULL, MS_REMOUNT | MS_RDONLY, NULL);
+
+With the notable caveat that in this example, **mount**(2) will clear
+all other filesystem parameters (such as **MS_DIRSYNC** or
+**MS_SYNCHRONOUS**); **fsconfig**(2) will only modify the **ro**
+parameter.
 
 # SEE ALSO
 
-**mountpoint**(1), **fsconfig**(2), **fsopen**(2),
-**path_resolution**(7), **mount**(8)
+**fsconfig**(2), **fsmount**(2), **fsopen**(2), **mount**(2),
+**mount_setattr**(2), **move_mount**(2), **open_tree**(2),
+**mount_namespaces**(7)
