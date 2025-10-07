@@ -4,31 +4,28 @@ mount_setattr - change properties of a mount or mount tree
 
 # LIBRARY
 
-Standard C library (*libc*, *-lc*)
+Standard C library (*libc*, *-lc*)
 
 # SYNOPSIS
 
-    #include <linux/fcntl.h> /* Definition of AT_* constants */
-    #include <linux/mount.h> /* Definition of MOUNT_ATTR_* constants */
-    #include <sys/syscall.h> /* Definition of SYS_* constants */
-    #include <unistd.h>
-    int syscall(SYS_mount_setattr, int dirfd, const char *pathname,
-     unsigned int flags, struct mount_attr *attr",size_t"size);
-
-*Note*: glibc provides no wrapper for **mount_setattr**(), necessitating
-the use of **syscall**(2).
+    #include <fcntl.h> /* Definition of AT_* constants */
+    #include <sys/mount.h>
+    int mount_setattr(int dirfd, const char *path, unsigned int flags,
+     struct mount_attr *attr, size_t size);
 
 # DESCRIPTION
 
-The **mount_setattr**() system call changes the mount properties of a
-mount or an entire mount tree. If *pathname* is a relative pathname,
-then it is interpreted relative to the directory referred to by the file
-descriptor *dirfd*. If *dirfd* is the special value **AT_FDCWD**, then
-*pathname* is interpreted relative to the current working directory of
-the calling process. If *pathname* is the empty string and
-**AT_EMPTY_PATH** is specified in *flags*, then the mount properties of
-the mount identified by *dirfd* are changed. (See **openat**(2) for an
-explanation of why the *dirfd* argument is useful.)
+The **mount_setattr**() system call is part of the suite of
+file-descriptor-based mount facilities in Linux.
+
+**mount_setattr**() changes the mount properties of a mount or an entire
+mount tree. If *path* is relative, then it is interpreted relative to
+the directory referred to by the file descriptor *dirfd*. If *dirfd* is
+the special value **AT_FDCWD**, then *path* is interpreted relative to
+the current working directory of the calling process. If *path* is the
+empty string and **AT_EMPTY_PATH** is specified in *flags*, then the
+mount properties of the mount identified by *dirfd* are changed. (See
+**openat**(2) for an explanation of why the *dirfd* argument is useful.)
 
 The **mount_setattr**() system call uses an extensible structure
 (*struct mount_attr*) to allow for future extensions. Any non-flag
@@ -54,8 +51,8 @@ The *flags* argument can be used to alter the pathname resolution
 behavior. The supported values are:
 
 **AT_EMPTY_PATH**  
-If *pathname* is the empty string, change the mount properties on
-*dirfd* itself.
+If *path* is the empty string, change the mount properties on *dirfd*
+itself.
 
 **AT_RECURSIVE**  
 Change the mount properties of the entire mount tree.
@@ -66,15 +63,8 @@ Don't follow trailing symbolic links.
 **AT_NO_AUTOMOUNT**  
 Don't trigger automounts.
 
-The *attr* argument of **mount_setattr**() is a structure of the
-following form:
-
-    struct mount_attr {
-        __u64 attr_set;     /* Mount properties to set */
-        __u64 attr_clr;     /* Mount properties to clear */
-        __u64 propagation;  /* Mount propagation type */
-        __u64 userns_fd;    /* User namespace file descriptor */
-    };
+The *attr* argument of **mount_setattr**() is a pointer to a
+*mount_attr* structure, described in **mount_attr**(2type).
 
 The *attr_set* and *attr_clr* members are used to specify the mount
 properties that are supposed to be set or cleared for a mount or mount
@@ -225,13 +215,13 @@ For further details on the above propagation types, see
 # RETURN VALUE
 
 On success, **mount_setattr**() returns zero. On error, -1 is returned
-and *errno* is set to indicate the cause of the error.
+and *errno* is set to indicate the error.
 
 # ERRORS
 
 **EBADF**  
-*pathname* is relative but *dirfd* is neither **AT_FDCWD** nor a valid
-file descriptor.
+*path* is relative but *dirfd* is neither **AT_FDCWD** nor a valid file
+descriptor.
 
 **EBADF**  
 *userns_fd* is not a valid file descriptor.
@@ -246,7 +236,7 @@ The caller tried to create an ID-mapped mount raising
 holds files open for writing.
 
 **EINVAL**  
-The pathname specified via the *dirfd* and *pathname* arguments to
+The pathname specified via the *dirfd* and *path* arguments to
 **mount_setattr**() isn't a mount point.
 
 **EINVAL**  
@@ -355,7 +345,7 @@ Linux.
 
 # HISTORY
 
-Linux 5.12.
+Linux 5.12. glibc 2.36.
 
 # NOTES
 
@@ -391,7 +381,9 @@ mount:
 - The underlying filesystem must support ID-mapped mounts. Currently,
   the following filesystems support ID-mapped mounts:
 
-  - **xfs**(5) (since Linux 5.12)
+  - 
+
+  **xfs**(5) (since Linux 5.12)
 
   - **ext4**(5) (since Linux 5.12)
 
@@ -414,6 +406,8 @@ mount:
 
   - **cephfs** (since Linux 6.7)
 
+  - **hugetlbfs** (since Linux 6.9)
+
 - The mount must not already be ID-mapped. This also implies that the ID
   mapping of a mount cannot be altered.
 
@@ -424,8 +418,6 @@ mount:
   must not already have been visible in a mount namespace. (To put
   things another way: the mount must not have been attached to the
   filesystem hierarchy with a system call such as **move_mount**(2).)
-
-- The user namespace specified in *userns_fd* must have an idmapping written.
 
 ID mappings can be created for user IDs, group IDs, and project IDs. An
 ID mapping is essentially a mapping of a range of user or group IDs into
@@ -501,6 +493,28 @@ scenarios:
   ownership via the **chown**(2) system call changes the ownership
   globally and permanently.
 
+## Mount attributes and filesystem parameters
+
+Some mount attributes (traditionally associated with **mount**(8)-style
+options) have a sibling filesystem parameter with superficially similar
+user-facing behaviour. For example, the *-o ro* option to **mount**(8)
+can refer to the "read-only" filesystem parameter, or the "read-only"
+mount attribute. Both of these result in mount objects becoming
+read-only, but they do have different behaviour.
+
+The distinction between these two kinds of option is that mount object
+attributes are applied per-mount-object (allowing different mount
+objects derived from a given filesystem instance to have different
+attributes), while filesystem instance parameters ("superblock flags" in
+kernel-developer parlance) apply to all mount objects derived from the
+same filesystem instance.
+
+When using **mount**(2), the line between these two types of mount
+options was blurred. However, with **mount_setattr**() and
+**fsconfig**(2), the distinction is made much clearer. Mount attributes
+are configured with **mount_setattr**(), while filesystem parameters are
+configured using **fsconfig**(2).
+
 ## Extensibility
 
 In order to allow for future extensibility, **mount_setattr**() requires
@@ -570,33 +584,13 @@ largest value which doesn't produce an error of **E2BIG**).
     #include <err.h>
     #include <fcntl.h>
     #include <getopt.h>
-    #include <linux/mount.h>
-    #include <linux/types.h>
+    #include <sys/mount.h>
+    #include <sys/types.h>
     #include <stdbool.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include <sys/syscall.h>
     #include <unistd.h>
-    static inline int
-    mount_setattr(int dirfd, const char *pathname, unsigned int flags,
-                  struct mount_attr *attr, size_t size)
-    {
-        return syscall(SYS_mount_setattr, dirfd, pathname, flags,
-                       attr, size);
-    }
-    static inline int
-    open_tree(int dirfd, const char *filename, unsigned int flags)
-    {
-        return syscall(SYS_open_tree, dirfd, filename, flags);
-    }
-    static inline int
-    move_mount(int from_dirfd, const char *from_pathname,
-               int to_dirfd, const char *to_pathname, unsigned int flags)
-    {
-        return syscall(SYS_move_mount, from_dirfd, from_pathname,
-                       to_dirfd, to_pathname, flags);
-    }
     static const struct option longopts[] = {
         {"map-mount",       required_argument,  NULL,  'a'},
         {"recursive",       no_argument,        NULL,  'b'},
@@ -654,7 +648,7 @@ largest value which doesn't produce an error of **E2BIG**).
         source = argv[optind];
         target = argv[optind + 1];
         /* In the following, -1 as the 'dirfd' argument ensures that
-           open_tree() fails if 'source' is not an absolute pathname. */
+           open_tree() fails if 'source' is not an absolute pathname.  */
         fd_tree = open_tree(-1, source,
                             OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC |
                             AT_EMPTY_PATH | (recursive ? AT_RECURSIVE : 0));
@@ -671,7 +665,7 @@ largest value which doesn't produce an error of **E2BIG**).
             err(EXIT_FAILURE, "mount_setattr");
         close(fd_userns);
         /* In the following, -1 as the 'to_dirfd' argument ensures that
-           open_tree() fails if 'target' is not an absolute pathname. */
+           open_tree() fails if 'target' is not an absolute pathname.  */
         ret = move_mount(fd_tree, "", -1, target,
                          MOVE_MOUNT_F_EMPTY_PATH);
         if (ret == -1)
