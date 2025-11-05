@@ -1,88 +1,135 @@
 # NAME
 
-fsmount - Filesystem mount creation
+fsmount - instantiate mount object from filesystem context
+
+# LIBRARY
+
+Standard C library (*libc*, *-lc*)
 
 # SYNOPSIS
 
-    #include <sys/types.h>
     #include <sys/mount.h>
-    #include <unistd.h>
-    #include <fcntl.h> /* Definition of AT_* constants */
-
-    int fsmount(int fd, unsigned int flags, unsigned int mount_attrs);
-
-*Note*: There are no glibc wrappers for these system calls.
+    int fsmount(int fsfd, unsigned int flags",unsignedint"attr_flags);
 
 # DESCRIPTION
 
-**fsmount**() takes the file descriptor returned by **fsopen**() and
-creates a mount object for the filesystem root specified there. The
-attributes of the mount object are set from the *mount_attrs* parameter.
-The attributes specify the propagation and mount restrictions to be
-applied to accesses through this mount.
+The **fsmount**() system call is part of the suite of
+file-descriptor-based mount facilities in Linux.
 
-The mount object is then attached to a new file descriptor that looks
-like one created by **open**(2) with **O_PATH** or **open_tree**(2).
-This can be passed to **move_mount**(2) to attach the mount object to a
-mountpoint, thereby completing the process.
+**fsmount**() creates a new detached mount object for the root of the
+new filesystem instance referenced by the filesystem context file
+descriptor *fsfd*. A new file descriptor associated with the detached
+mount object is then returned. In order to create a mount object with
+**fsmount**(), the calling process must have the **CAP_SYS_ADMIN**
+capability.
 
-The file descriptor returned by fsmount() is marked close-on-exec if
-FSMOUNT_CLOEXEC is specified in *flags*.
+The filesystem context must have been created with a call to
+**fsopen**(2) and then had a filesystem instance instantiated with a
+call to **fsconfig**(2) with **FSCONFIG_CMD_CREATE** or
+**FSCONFIG_CMD_CREATE_EXCL** in order to be in the correct state for
+this operation (the "awaiting-mount" mode in kernel-developer parlance).
+Unlike **open_tree**(2) with **OPEN_TREE_CLONE**, **fsmount**() can only
+be called once in the lifetime of a filesystem context to produce a
+mount object.
 
-After fsmount() has completed, the context created by fsopen() is reset
-and moved to reconfiguration state, allowing the new superblock to be
-reconfigured. See **fspick**(2) for details.
+As with file descriptors returned from **open_tree**(2) called with
+**OPEN_TREE_CLONE**, the returned file descriptor can then be used with
+**move_mount**(2), **mount_setattr**(2), or other such system calls to
+do further mount operations. This mount object will be unmounted and
+destroyed when the file descriptor is closed if it was not otherwise
+attached to a mount point by calling **move_mount**(2). (Note that the
+unmount operation on **close**(2) is lazy—akin to calling **umount2**(2)
+with **MNT_DETACH**; any existing open references to files from the
+mount object will continue to work, and the mount object will only be
+completely destroyed once it ceases to be busy.) The returned file
+descriptor also acts the same as one produced by **open**(2) with
+**O_PATH**, meaning it can also be used as a *dirfd* argument to
+"\*at()" system calls.
+
+*flags* controls the creation of the returned file descriptor. A value
+for *flags* is constructed by bitwise ORing zero or more of the
+following constants:
+
+> **FSMOUNT_CLOEXEC**  
+> Set the close-on-exec (**FD_CLOEXEC**) flag on the new file
+> descriptor. See the description of the **O_CLOEXEC** flag in
+> **open**(2) for reasons why this may be useful.
+
+*attr_flags* specifies mount attributes which will be applied to the
+created mount object, in the form of **MOUNT_ATTR\_***\** flags. The
+flags are interpreted as though **mount_setattr**(2) was called with
+*attr.attr_set* set to the same value as *attr_flags*.
+**MOUNT_ATTR\_***\** flags which would require specifying additional
+fields in **mount_attr**(2type) (such as **MOUNT_ATTR_IDMAP**) are not
+valid flag values for *attr_flags*.
+
+If the **fsmount**() operation is successful, the filesystem context
+associated with the file descriptor *fsfd* is reset and placed into
+reconfiguration mode, as if it were just returned by **fspick**(2). You
+may continue to use **fsconfig**(2) with the now-reset filesystem
+context, including issuing the **FSCONFIG_CMD_RECONFIGURE** command to
+reconfigure the filesystem instance.
 
 # RETURN VALUE
 
-On success, **fsmount**(2) returns a file descriptor. On error, -1 is
-returned, and *errno* is set appropriately.
+On success, a new file descriptor is returned. On error, -1 is returned,
+and *errno* is set to indicate the error.
 
 # ERRORS
 
-The error values given below result from filesystem type independent
-errors. Each filesystem type may have its own special errors and its own
-special behavior. See the Linux kernel source code for details.
-
 **EBUSY**  
-The context referred to by *fd* is not in the right state to be used by
-**fsmount**().
-
-**EFAULT**  
-One of the pointer arguments points outside the user address space.
+The filesystem context associated with *fsfd* is not in the right state
+to be used by **fsmount**().
 
 **EINVAL**  
 *flags* had an invalid flag set.
 
 **EINVAL**  
-*mount_attrs,* includes invalid **MOUNT_ATTR\_\*** flags.
+*attr_flags* had an invalid **MOUNT_ATTR\_***\** flag set.
 
 **EMFILE**  
-The system has too many open files to create more.
+The calling process has too many open files to create more.
 
 **ENFILE**  
-The process has too many open files to create more.
+The system has too many open files to create more.
+
+**ENOSPC**  
+The "anonymous" mount namespace necessary to contain the new mount
+object could not be allocated, as doing so would exceed the configured
+per-user limit on the number of mount namespaces in the current user
+namespace. (See also **namespaces**(7).)
 
 **ENOMEM**  
-The kernel could not allocate sufficient memory to complete the call.
+The kernel could not allocate sufficient memory to complete the
+operation.
 
-# CONFORMING TO
+**EPERM**  
+The calling process does not have the required **CAP_SYS_ADMIN**
+capability.
 
-These functions are Linux-specific and should not be used in programs
-intended to be portable.
+# STANDARDS
 
-# VERSIONS
+Linux.
 
-**fsmount**() were added to Linux in kernel 5.1.
+# HISTORY
 
-# NOTES
+Linux 5.2. glibc 2.36.
 
-Glibc does not (yet) provide a wrapper for  the
-**fsmount**() system call; call it using **syscall**(2).
+# EXAMPLES
+
+    int fsfd, mntfd, tmpfd;
+    fsfd = fsopen("tmpfs", FSOPEN_CLOEXEC);
+    fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+    mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC,
+                    MOUNT_ATTR_NODEV | MOUNT_ATTR_NOEXEC);
+    /* Create a new file without attaching the mount object */
+    tmpfd = openat(mntfd, "tmpfile", O_CREAT | O_EXCL | O_RDWR, 0600);
+    unlinkat(mntfd, "tmpfile", 0);
+    /* Attach the mount object to "/tmp" */
+    move_mount(mntfd, "", AT_FDCWD, "/tmp", MOVE_MOUNT_F_EMPTY_PATH);
 
 # SEE ALSO
 
-**mountpoint**(1), **fsconfig**(2), **fsopen**(2), **fspick**(2),
-**move_mount**(2), **open_tree**(2), **umount**(2),
-**mount_namespaces**(7), **path_resolution**(7), **findmnt**(8),
-**lsblk**(8), **mount**(8), **umount**(8)
+**fsconfig**(2), **fsopen**(2), **fspick**(2), **mount**(2),
+**mount_setattr**(2), **move_mount**(2), **open_tree**(2),
+**mount_namespaces**(7)
